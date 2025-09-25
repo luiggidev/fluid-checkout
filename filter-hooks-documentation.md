@@ -27,15 +27,12 @@ This document provides comprehensive documentation for all Filter hooks availabl
 **Example**
 ```php
 /**
- * Disable Fluid Checkout page template for specific conditions
+ * Disable Fluid Checkout page template
  */
-function disable_fc_page_template_for_mobile( $enabled ) {
-    if ( wp_is_mobile() ) {
-        return false;
-    }
-    return $enabled;
+function disable_fc_page_template( $enabled ) {
+    return false;
 }
-add_filter( 'fc_enable_checkout_page_template', 'disable_fc_page_template_for_mobile', 10 );
+add_filter( 'fc_enable_checkout_page_template', 'disable_fc_page_template', 10 );
 ```
 
 #### `fc_enable_checkout_shortcode_wrapper`
