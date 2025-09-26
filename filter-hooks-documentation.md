@@ -22,7 +22,7 @@ This document provides comprehensive documentation for all Filter hooks availabl
 #### `fc_enable_checkout_page_template`
 **Description** Controls whether to use Fluid Checkout page template instead of the default WooCommerce checkout template.
 **Parameters**
-- `$enabled` (bool) Whether the checkout page template is enabled. Default: `true`
+- `$enabled` (bool) Whether the checkout page template is enabled. Defaults to `true`.
 **Context** Used in `inc/checkout-page-template.php` to determine if the custom page template should be applied
 **Example**
 ```php
@@ -38,7 +38,7 @@ add_filter( 'fc_enable_checkout_page_template', 'disable_fc_page_template', 10 )
 #### `fc_enable_checkout_shortcode_wrapper`
 **Description** Controls whether to wrap the checkout shortcode with a `fc-content` wrapper element.
 **Parameters**
-- `$enabled` (bool) Whether the shortcode wrapper is enabled. Default: `false`
+- `$enabled` (bool) Whether the shortcode wrapper is enabled. Defaults to `false`.
 **Context** Used in `inc/checkout-page-template.php` when outputting checkout shortcode
 **Example**
 ```php
@@ -54,7 +54,7 @@ add_filter( 'fc_enable_checkout_shortcode_wrapper', 'enable_checkout_shortcode_w
 #### `fc_override_template_with_theme_file`
 **Description** Allows themes to override Fluid Checkout template files with their own versions.
 **Parameters**
-- `$override` (bool) Whether to override with theme file. Default: `false`
+- `$override` (bool) Whether to override with theme file. Defaults to `false`.
 - `$template` (string) The template file path
 - `$template_name` (string) The template name
 - `$template_path` (string) The template path
@@ -76,7 +76,7 @@ add_filter( 'fc_override_template_with_theme_file', 'override_fc_templates_with_
 #### `fc_add_container_class`
 **Description** Controls whether to add the `fc-container` class to the checkout wrapper element.
 **Parameters**
-- `$add_class` (bool) Whether to add the container class. Default: `true`
+- `$add_class` (bool) Whether to add the container class. Defaults to `true`.
 **Context** Used in `inc/checkout-steps.php` when building wrapper classes
 **Example**
 ```php
@@ -92,7 +92,7 @@ add_filter( 'fc_add_container_class', 'remove_fc_container_class', 10 );
 #### `fc_content_section_class`
 **Description** Adds custom CSS classes to the content section wrapper element.
 **Parameters**
-- `$class` (string) Additional CSS classes for the content section. Default: `''`
+- `$class` (string) Additional CSS classes for the content section. Defaults to `''`.
 **Context** Used in `templates/fc/checkout-page-template/checkout/page-checkout.php`
 **Example**
 ```php
@@ -109,7 +109,7 @@ add_filter( 'fc_content_section_class', 'add_custom_content_section_classes', 10
 #### `fc_wrapper_classes`
 **Description** Adds custom CSS classes to the main checkout wrapper element.
 **Parameters**
-- `$classes` (string) Additional CSS classes for the wrapper. Default: `''`
+- `$classes` (string) Additional CSS classes for the wrapper. Defaults to `''`.
 **Context** Used in `templates/fc/checkout-steps/checkout/form-checkout.php`
 **Example**
 ```php
@@ -126,7 +126,7 @@ add_filter( 'fc_wrapper_classes', 'add_custom_wrapper_classes', 10 );
 #### `fc_checkout_page_title`
 **Description** Modifies the checkout page title text.
 **Parameters**
-- `$title` (string) The checkout page title. Default: `get_the_title()`
+- `$title` (string) The checkout page title. Defaults to `get_the_title()`.
 **Context** Used in `templates/fc/checkout-page-template/checkout/page-checkout.php`
 **Example**
 ```php
@@ -142,17 +142,14 @@ add_filter( 'fc_checkout_page_title', 'customize_checkout_page_title', 10 );
 #### `fc_display_checkout_page_title`
 **Description** Controls whether to display the checkout page title or hide it with screen-reader-only class.
 **Parameters**
-- `$display` (bool) Whether to display the title. Default: `false`
+- `$display` (bool) Whether to display the title. Defaults to `false`.
 **Context** Used in `templates/fc/checkout-page-template/checkout/page-checkout.php`
 **Example**
 ```php
 /**
  * Show checkout page title
  */
-function show_checkout_page_title( $display ) {
-    return true;
-}
-add_filter( 'fc_display_checkout_page_title', 'show_checkout_page_title', 10 );
+add_filter( 'fc_display_checkout_page_title', '__return_true', 10 );
 ```
 
 ### Header and Logo
@@ -160,15 +157,32 @@ add_filter( 'fc_display_checkout_page_title', 'show_checkout_page_title', 10 );
 #### `fc_checkout_header_logo_home_url`
 **Description** Modifies the home URL for the checkout header logo link.
 **Parameters**
-- `$home_url` (string) The home URL for the logo link. Default: `home_url( '/' )`
+- `$home_url` (string) The home URL for the logo link. Defaults to `home_url( '/' )`.
 **Context** Used in `templates/fc/checkout-page-template/checkout/checkout-header.php`
+
+**When this filter triggers:**
+- When using Fluid Checkout's custom logo setting (`fc_checkout_logo_image` option)
+- When falling back to site name (when no custom logo is set and no custom action is hooked to `fc_checkout_header_logo`)
+
+**When this filter does NOT trigger:**
+- When using WordPress's native custom logo functionality (`the_custom_logo()`) - this happens when the theme has a custom logo set in the WordPress Customizer
+- When a custom action is hooked to `fc_checkout_header_logo`
+
+**Note:** If you need to modify the home URL when using WordPress's native custom logo, you would need to either use Fluid Checkout's logo setting instead or hook into the `fc_checkout_header_logo` action to override the logo display.
 **Example**
 ```php
 /**
  * Customize header logo home URL
  */
 function customize_header_logo_home_url( $home_url ) {
-    return home_url( '/custom-landing-page/' );
+    // Redirect logo to an existing page (e.g., blog page)
+    $blog_page = get_page_by_path( 'blog' );
+    if ( $blog_page ) {
+        return get_permalink( $blog_page->ID );
+    }
+    
+    // Fallback to home URL if page doesn't exist
+    return $home_url;
 }
 add_filter( 'fc_checkout_header_logo_home_url', 'customize_header_logo_home_url', 10 );
 ```
@@ -176,7 +190,7 @@ add_filter( 'fc_checkout_header_logo_home_url', 'customize_header_logo_home_url'
 #### `fc_checkout_html_custom_attributes`
 **Description** Adds custom HTML attributes to the checkout page HTML element.
 **Parameters**
-- `$attributes` (array) Array of HTML attributes as key-value pairs. Default: `array()`
+- `$attributes` (array) Array of HTML attributes as key-value pairs. Defaults to `array()`.
 **Context** Used in `templates/fc/checkout-page-template/checkout/page-checkout-header.php`
 **Example**
 ```php
@@ -184,8 +198,7 @@ add_filter( 'fc_checkout_header_logo_home_url', 'customize_header_logo_home_url'
  * Add custom HTML attributes to checkout page
  */
 function add_custom_html_attributes( $attributes ) {
-    $attributes['data-theme'] = 'custom-checkout';
-    $attributes['data-version'] = '2.0';
+    $attributes['custom-attribute'] = 'custom-checkout-attribute';
     return $attributes;
 }
 add_filter( 'fc_checkout_html_custom_attributes', 'add_custom_html_attributes', 10 );
@@ -194,19 +207,39 @@ add_filter( 'fc_checkout_html_custom_attributes', 'add_custom_html_attributes', 
 #### `fc_checkout_body_custom_attributes`
 **Description** Adds custom HTML attributes to the checkout page body element.
 **Parameters**
-- `$attributes` (array) Array of HTML attributes as key-value pairs. Default: `array()`
+- `$attributes` (array) Array of HTML attributes as key-value pairs. Defaults to `array()`.
 **Context** Used in `templates/fc/checkout-page-template/checkout/page-checkout-header.php`
-**Example**
+
+**⚠️ Important Limitation for CSS Classes:**
+This filter has a limitation when adding CSS classes. Due to how the plugin outputs the body element, adding `class` attributes through this filter will result in invalid HTML (multiple `class` attributes on the same element). For CSS classes, use WordPress's `body_class` filter instead.
+
+**Example for non-class attributes:**
 ```php
 /**
  * Add custom body attributes for theme compatibility
  */
 function add_custom_body_attributes( $attributes ) {
-    $attributes['class'] = 'custom-checkout-body';
-    $attributes['data-page'] = 'checkout';
+    // Add non-class attributes
+    $attributes['data-custom'] = 'custom-value';
+    $attributes['id'] = 'custom-checkout-page';
+    
     return $attributes;
 }
 add_filter( 'fc_checkout_body_custom_attributes', 'add_custom_body_attributes', 10 );
+```
+
+**Example for CSS classes (use body_class filter instead):**
+```php
+/**
+ * Add custom body class for checkout
+ */
+function add_custom_checkout_body_class( $classes ) {
+    if ( is_checkout() ) {
+        $classes[] = 'custom-checkout-body';
+    }
+    return $classes;
+}
+add_filter( 'body_class', 'add_custom_checkout_body_class' );
 ```
 
 ### Layout and Design
@@ -214,7 +247,10 @@ add_filter( 'fc_checkout_body_custom_attributes', 'add_custom_body_attributes', 
 #### `fc_get_checkout_layout`
 **Description** Modifies the checkout layout setting value.
 **Parameters**
-- `$layout` (string) The checkout layout setting value. Default: `'multi-step'`
+- `$layout` (string) The checkout layout setting value. Defaults to `'multi-step'`.
+**Available Options**
+- `'multi-step'` - Multi-step checkout layout (default)
+- `'single-step'` - Single step checkout layout
 **Context** Used in `inc/checkout-steps.php` to determine the current layout
 **Example**
 ```php
@@ -233,7 +269,7 @@ add_filter( 'fc_get_checkout_layout', 'force_single_step_layout_mobile', 10 );
 #### `fc_is_checkout_layout_multistep`
 **Description** Controls whether the checkout uses multi-step layout.
 **Parameters**
-- `$is_multistep` (bool) Whether the layout is multi-step. Default: `'multi-step' === $this->get_checkout_layout()`
+- `$is_multistep` (bool) Whether the layout is multi-step. Defaults to `'multi-step' === $this->get_checkout_layout()`.
 **Context** Used in `inc/checkout-steps.php` to check layout type
 **Example**
 ```php
@@ -388,7 +424,7 @@ add_filter( 'fc_get_checkout_steps_before', 'hijack_checkout_steps', 10, 2 );
 #### `fc_is_checkout_page_or_fragment`
 **Description** Determines if the current page is a checkout page or checkout fragment (AJAX request).
 **Parameters**
-- `$is_checkout` (bool) Whether the current page is checkout. Default: `false`
+- `$is_checkout` (bool) Whether the current page is checkout. Defaults to `false`.
 **Context** Used in `inc/checkout-steps.php` to identify checkout contexts
 **Example**
 ```php
@@ -407,7 +443,7 @@ add_filter( 'fc_is_checkout_page_or_fragment', 'mark_custom_page_as_checkout', 1
 #### `fc_is_cart_page_or_fragment`
 **Description** Determines if the current page is a cart page or cart fragment (AJAX request).
 **Parameters**
-- `$is_cart` (bool) Whether the current page is cart. Default: `false`
+- `$is_cart` (bool) Whether the current page is cart. Defaults to `false`.
 **Context** Used in various places to identify cart contexts
 **Example**
 ```php
@@ -428,7 +464,7 @@ add_filter( 'fc_is_cart_page_or_fragment', 'mark_custom_page_as_cart', 10 );
 #### `fc_step_title_contact`
 **Description** Modifies the contact step title text.
 **Parameters**
-- `$title` (string) The contact step title. Default: `_x( 'Contact', 'Checkout step title', 'fluid-checkout' )`
+- `$title` (string) The contact step title. Defaults to `_x( 'Contact', 'Checkout step title', 'fluid-checkout' )`.
 **Context** Used in `inc/checkout-steps.php` when registering the contact step
 **Example**
 ```php
@@ -444,7 +480,7 @@ add_filter( 'fc_step_title_contact', 'customize_contact_step_title', 10 );
 #### `fc_step_title_shipping`
 **Description** Modifies the shipping step title text.
 **Parameters**
-- `$title` (string) The shipping step title. Default: `_x( 'Shipping', 'Checkout step title', 'fluid-checkout' )`
+- `$title` (string) The shipping step title. Defaults to `_x( 'Shipping', 'Checkout step title', 'fluid-checkout' )`
 **Context** Used in `inc/checkout-steps.php` when registering the shipping step
 **Example**
 ```php
@@ -460,7 +496,7 @@ add_filter( 'fc_step_title_shipping', 'customize_shipping_step_title', 10 );
 #### `fc_step_title_billing`
 **Description** Modifies the billing step title text.
 **Parameters**
-- `$title` (string) The billing step title. Default: `_x( 'Billing', 'Checkout step title', 'fluid-checkout' )`
+- `$title` (string) The billing step title. Defaults to `_x( 'Billing', 'Checkout step title', 'fluid-checkout' )`
 **Context** Used in `inc/checkout-steps.php` when registering the billing step
 **Example**
 ```php
@@ -476,7 +512,7 @@ add_filter( 'fc_step_title_billing', 'customize_billing_step_title', 10 );
 #### `fc_step_title_payment`
 **Description** Modifies the payment step title text.
 **Parameters**
-- `$title` (string) The payment step title. Default: `_x( 'Payment', 'Checkout step title', 'fluid-checkout' )`
+- `$title` (string) The payment step title. Defaults to `_x( 'Payment', 'Checkout step title', 'fluid-checkout' )`
 **Context** Used in `inc/checkout-steps.php` when registering the payment step
 **Example**
 ```php
@@ -529,7 +565,7 @@ add_filter( 'fc_next_step_button_label', 'customize_next_step_button_labels', 10
 #### `fc_next_step_button_classes`
 **Description** Adds custom CSS classes to the next step button.
 **Parameters**
-- `$classes` (array) Array of CSS classes for the button. Default: `array( 'button' )`
+- `$classes` (array) Array of CSS classes for the button. Defaults to `array( 'button' )`
 **Context** Used in `inc/checkout-steps.php` when building button attributes
 **Example**
 ```php
@@ -613,7 +649,7 @@ add_filter( 'fc_is_current_step', 'custom_current_step_logic', 10, 3 );
 #### `fc_checkout_maybe_disable_place_order_button`
 **Description** Controls whether to disable the place order button, typically for validation purposes.
 **Parameters**
-- `$disable` (bool) Whether to disable the place order button. Default: `false`
+- `$disable` (bool) Whether to disable the place order button. Defaults to `false`.
 **Context** Used in checkout templates when rendering the place order button
 **Example**
 ```php
@@ -654,7 +690,7 @@ add_filter( 'fc_checkout_steps_script_settings', 'add_custom_checkout_steps_sett
 #### `fc_checkout_progress_bar_style`
 **Description** Modifies the progress bar style setting (bars or breadcrumbs).
 **Parameters**
-- `$style` (string) The progress bar style. Default: `'bars'`
+- `$style` (string) The progress bar style. Defaults to `'bars'`
 **Context** Used in `inc/checkout-steps.php` when getting progress bar style
 **Example**
 ```php
@@ -708,7 +744,7 @@ add_filter( 'fc_checkout_progress_bar_inner_attributes', 'add_custom_progress_ba
 #### `fc_checkout_progress_bar_display_count`
 **Description** Controls whether to display step count in the progress bar.
 **Parameters**
-- `$display_count` (bool) Whether to display step count. Default: `true`
+- `$display_count` (bool) Whether to display step count. Defaults to `true`.
 **Context** Used in `inc/checkout-steps.php` when rendering progress bar
 **Example**
 ```php
@@ -749,7 +785,7 @@ add_filter( 'fc_checkout_step_attributes', 'add_custom_step_attributes', 10, 4 )
 #### `fc_do_order_notes_hooks_position`
 **Description** Controls the position where order notes hooks are executed.
 **Parameters**
-- `$position` (string) The hook position. Default: `'after'`
+- `$position` (string) The hook position. Defaults to `'after'`
 **Context** Used in `inc/checkout-steps.php` when positioning order notes hooks
 **Example**
 ```php
@@ -765,7 +801,7 @@ add_filter( 'fc_do_order_notes_hooks_position', 'change_order_notes_hooks_positi
 #### `fc_do_order_notes_hooks_priority`
 **Description** Controls the priority of order notes hooks execution.
 **Parameters**
-- `$priority` (int) The hook priority. Default: `10`
+- `$priority` (int) The hook priority. Defaults to `10`
 **Context** Used in `inc/checkout-steps.php` when setting hook priorities
 **Example**
 ```php
@@ -781,7 +817,7 @@ add_filter( 'fc_do_order_notes_hooks_priority', 'change_order_notes_hooks_priori
 #### `fc_billing_step_hook_priority`
 **Description** Controls the priority of billing step hooks execution.
 **Parameters**
-- `$priority` (int) The hook priority. Default: `10`
+- `$priority` (int) The hook priority. Defaults to `10`
 **Context** Used in `inc/checkout-steps.php` when setting billing step hook priorities
 **Example**
 ```php
@@ -814,7 +850,7 @@ add_filter( 'fc_billing_address_substep_position_args', 'customize_billing_addre
 #### `fc_checkout_after_step_shipping_fields_inside`
 **Description** Defines the hook position for after shipping fields inside the shipping step.
 **Parameters**
-- `$position` (string) The hook position. Default: `'inside'`
+- `$position` (string) The hook position. Defaults to `'inside'`
 **Context** Used in `inc/checkout-steps.php` when positioning shipping field hooks
 **Example**
 ```php
@@ -863,7 +899,7 @@ add_filter( 'fc_locale_language_variant', 'customize_locale_language_variant', 1
 #### `fc_show_shipping_section_highlighted`
 **Description** Controls whether to highlight the shipping section.
 **Parameters**
-- `$highlight` (bool) Whether to highlight the shipping section. Default: `false`
+- `$highlight` (bool) Whether to highlight the shipping section. Defaults to `false`.
 **Context** Used in checkout templates when rendering shipping section
 **Example**
 ```php
@@ -882,7 +918,7 @@ add_filter( 'fc_show_shipping_section_highlighted', 'highlight_shipping_section_
 #### `fc_show_billing_section_highlighted`
 **Description** Controls whether to highlight the billing section.
 **Parameters**
-- `$highlight` (bool) Whether to highlight the billing section. Default: `false`
+- `$highlight` (bool) Whether to highlight the billing section. Defaults to `false`.
 **Context** Used in checkout templates when rendering billing section
 **Example**
 ```php
@@ -901,7 +937,7 @@ add_filter( 'fc_show_billing_section_highlighted', 'highlight_billing_section_co
 #### `fc_show_order_totals_row_highlighted`
 **Description** Controls whether to highlight the order totals row.
 **Parameters**
-- `$highlight` (bool) Whether to highlight the order totals row. Default: `false`
+- `$highlight` (bool) Whether to highlight the order totals row. Defaults to `false`.
 **Context** Used in checkout templates when rendering order totals
 **Example**
 ```php
