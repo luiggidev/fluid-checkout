@@ -44,9 +44,10 @@ class FluidCheckout_ThemeCompat_Woodmart extends FluidCheckout {
 		// Theme options
 		add_action( 'wp', array( $this, 'init_theme_options_hooks' ), 150 );
 
+		//! This is running everywhere, not just on the Checkout page? Maybe because the Theme is doing that as well..
 		// Free shipping bar
 		add_action( 'wp', array( $this, 'init_free_shipping_bar_hooks' ), 150 );
-		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'maybe_add_free_shipping_bar_fragment' ), 10 );
+		// add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'maybe_add_free_shipping_bar_fragment' ), 10 );
 	}
 
 	/**
@@ -73,17 +74,21 @@ class FluidCheckout_ThemeCompat_Woodmart extends FluidCheckout {
 		// Bail if theme functions and classes are not available
 		if ( ! function_exists( 'woodmart_get_opt' ) || ! class_exists( 'XTS\Modules\Shipping_Progress_Bar\Main' ) || ! class_exists( 'XTS\Modules\Layouts\Main' ) ) { return; }
 
-		// Check if the classes have the get_instance method
-		if ( ! method_exists( 'XTS\Modules\Shipping_Progress_Bar\Main', 'get_instance' ) || ! method_exists( 'XTS\Modules\Layouts\Main', 'get_instance' ) ) { return; }
+		// // Check if the classes have the get_instance method
+		// if ( ! method_exists( 'XTS\Modules\Shipping_Progress_Bar\Main', 'get_instance' ) || ! method_exists( 'XTS\Modules\Layouts\Main', 'get_instance' ) ) { return; }
 
 		// Get theme class instances
 		$free_shipping_bar_instance = XTS\Modules\Shipping_Progress_Bar\Main::get_instance();
-		$builder_instance = XTS\Modules\Layouts\Main::get_instance();
+		// $builder_instance = XTS\Modules\Layouts\Main::get_instance(); //! Not used
 
 		// Checkout page
 		if ( woodmart_get_opt( 'shipping_progress_bar_enabled' ) && woodmart_get_opt( 'shipping_progress_bar_location_checkout' ) ) {
+			//! Does not seem to be doing anythig? Just follwing code from theme?
+			// Remove theme free shipping bar action from checkout page (older Woodmart placement)
 			remove_action( 'woocommerce_checkout_before_customer_details', array( $free_shipping_bar_instance, 'render_shipping_progress_bar_with_wrapper' ), 10 );
 			remove_action( 'woocommerce_checkout_billing', array( $free_shipping_bar_instance, 'render_shipping_progress_bar_with_wrapper' ), 10 );
+
+			// Add free shipping bar to correct Fluid Checkout checkout page hook
 			add_action( 'fc_checkout_before_steps', array( $free_shipping_bar_instance, 'render_shipping_progress_bar_with_wrapper' ), 5 ); // Right before coupon code section
 		}
 	}
@@ -266,12 +271,12 @@ class FluidCheckout_ThemeCompat_Woodmart extends FluidCheckout {
 		// Bail if theme functions and classes are not available
 		if ( ! function_exists( 'woodmart_get_opt' ) || ! class_exists( 'XTS\Modules\Shipping_Progress_Bar\Main' ) || ! class_exists( 'XTS\Modules\Layouts\Main' ) ) { return $fragments; }
 
-		// Check if the classes have the get_instance method
-		if ( ! method_exists( 'XTS\Modules\Shipping_Progress_Bar\Main', 'get_instance' ) || ! method_exists( 'XTS\Modules\Layouts\Main', 'get_instance' ) ) { return $fragments; }
+		// // Check if the classes have the get_instance method
+		// if ( ! method_exists( 'XTS\Modules\Shipping_Progress_Bar\Main', 'get_instance' ) || ! method_exists( 'XTS\Modules\Layouts\Main', 'get_instance' ) ) { return $fragments; }
 
 		// Get theme class instances
 		$free_shipping_bar_instance = XTS\Modules\Shipping_Progress_Bar\Main::get_instance();
-		$builder_instance = XTS\Modules\Layouts\Main::get_instance();
+		// $builder_instance = XTS\Modules\Layouts\Main::get_instance(); //! Not used
 
 		// Bail if shipping bar is disabled for the checkout page
 		if ( ! woodmart_get_opt( 'shipping_progress_bar_location_checkout' ) ) { return $fragments; }
