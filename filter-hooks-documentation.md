@@ -2357,14 +2357,24 @@ add_filter( 'fc_shipping_same_as_billing_display_substep_review_text_notice', '_
 #### `fc_shipping_methods_disable_auto_select`
 **Description** Controls whether to disable automatic selection of shipping methods (first available method).
 **Parameters**
-- `$disable_auto_select` (bool) Whether to disable auto-selection. Defaults to `false`.
-**Context** Used in `inc/checkout-steps.php` when initializing shipping methods
+- `$disable_auto_select` (bool) Whether to bail out and allow auto-selection. Defaults to `true` (when setting is 'no').
+- `$default` (string) Default shipping method from WooCommerce.
+- `$rates` (array) Available shipping rates for the package.
+- `$chosen_method` (string) Currently chosen method ID.
+**Context** Used in `inc/checkout-steps.php` when processing the `woocommerce_shipping_chosen_method` filter
+**Configuration** Admin: WooCommerce → Settings → Checkout → Shipping methods → "Prevent automatic selection of the first shipping method"
+**Note** This filter has counterintuitive behavior: `true` allows auto-selection, `false` prevents it.
 **Example**
 ```php
 /**
- * Disable automatic shipping method selection
+ * Allow automatic shipping method selection (default behavior)
  */
 add_filter( 'fc_shipping_methods_disable_auto_select', '__return_true', 10 );
+
+/**
+ * Prevent automatic shipping method selection
+ */
+add_filter( 'fc_shipping_methods_disable_auto_select', '__return_false', 10 );
 ```
 
 #### `fc_is_substep_complete_shipping_address`
@@ -2459,101 +2469,963 @@ add_filter( 'fc_save_new_address_data_shipping_skip_update', '__return_true', 10
 
 ### Address Localization
 
-- `fc_add_phone_localisation_formats` - Controls whether to add phone to address localization formats
-- `fc_formatted_address_replacements_custom_field_keys` - Defines custom field keys for address replacements
-- `fc_shipping_substep_text_address_data` - Modifies shipping address data for substep text
+#### `fc_add_phone_localisation_formats`
+**Description** Controls whether to add phone number to address localization formats when displaying formatted addresses.
+**Parameters**
+- `$should_add` (string|bool) Whether to add phone to formatted addresses. Accepts 'yes'/'no' or true/false. Defaults to `'yes'`.
+**Context** Used in `inc/checkout-steps.php` when generating formatted addresses for display
+**Example**
+```php
+/**
+ * Disable phone number in formatted addresses
+ */
+add_filter( 'fc_add_phone_localisation_formats', '__return_false', 10 );
+```
+
+#### `fc_formatted_address_replacements_custom_field_keys`
+**Description** Defines custom field keys that should be added to formatted address replacements for display in addresses.
+**Parameters**
+- `$custom_field_keys` (array) Array of custom field keys to add to address replacements. Defaults to empty array.
+**Context** Used in `inc/checkout-steps.php` when generating formatted address replacements
+**Example**
+```php
+/**
+ * Add custom fields to formatted address replacements
+ */
+function add_custom_address_fields( $custom_field_keys ) {
+    $custom_field_keys[] = 'custom_field_1';
+    $custom_field_keys[] = 'billing_custom_field_2';
+    return $custom_field_keys;
+}
+add_filter( 'fc_formatted_address_replacements_custom_field_keys', 'add_custom_address_fields', 10, 1 );
+```
+
+#### `fc_shipping_substep_text_address_data`
+**Description** Modifies shipping address data used for generating substep review text display.
+**Parameters**
+- `$address_data` (array) The address data array containing field values for display.
+**Context** Used in `inc/checkout-steps.php` when generating shipping address substep text
+**Example**
+```php
+/**
+ * Customize shipping address data for substep display
+ */
+function customize_shipping_substep_data( $address_data ) {
+    // Remove phone number from substep display
+    unset( $address_data['phone'] );
+    return $address_data;
+}
+add_filter( 'fc_shipping_substep_text_address_data', 'customize_shipping_substep_data', 10, 1 );
+```
 
 ### Shipping Not Needed
 
-- `fc_shipping_not_needed_shipping_field_keys` - Defines field keys when shipping is not needed
-- `fc_copy_billing_to_shipping_address_when_shipping_not_needed` - Controls whether to copy billing to shipping when shipping not needed
+#### `fc_shipping_not_needed_shipping_field_keys`
+**Description** Defines the list of shipping field keys that should be copied from billing address when shipping is not needed.
+**Parameters**
+- `$field_keys` (array) Array of shipping field keys to copy from billing. Defaults to standard address fields (first_name, last_name, country, state, postcode, city, address_1, address_2).
+**Context** Used in `inc/checkout-steps.php` when copying billing to shipping address for non-shipping orders
+**Example**
+```php
+/**
+ * Add custom shipping fields when shipping not needed
+ */
+function add_custom_shipping_fields( $field_keys ) {
+    $field_keys[] = 'shipping_custom_field';
+    return $field_keys;
+}
+add_filter( 'fc_shipping_not_needed_shipping_field_keys', 'add_custom_shipping_fields', 10, 1 );
+```
+
+#### `fc_copy_billing_to_shipping_address_when_shipping_not_needed`
+**Description** Controls whether to automatically copy billing address to shipping address when shipping is not needed.
+**Parameters**
+- `$should_copy` (bool) Whether to copy billing to shipping when shipping not needed. Defaults to `true`.
+**Context** Used in `inc/checkout-steps.php` when processing checkout data for non-shipping orders
+**Example**
+```php
+/**
+ * Disable automatic copying of billing to shipping when shipping not needed
+ */
+add_filter( 'fc_copy_billing_to_shipping_address_when_shipping_not_needed', '__return_false', 10 );
+```
 
 ## Billing Step
 
 ### Billing Address
 
-- `fc_checkout_billing_collapsible_initial_state` - Controls initial state of billing address collapsible section
-- `fc_is_billing_address_before_shipping_address` - Controls whether billing address comes before shipping address
-- `fc_is_billing_address_forced_same_as_shipping_address` - Controls whether billing address is forced to be same as shipping
-- `fc_billing_same_as_shipping_option_label` - Modifies the "Same as shipping address" option label
-- `fc_billing_same_as_shipping_skip_fields` - Defines fields to skip when copying shipping to billing
-- `fc_billing_same_as_shipping_field_keys` - Defines field keys to copy from shipping to billing
-- `fc_output_billing_same_as_shipping_as_hidden_field` - Controls whether to output billing same as shipping as hidden field
+#### `fc_checkout_billing_collapsible_initial_state`
+**Description** Controls the initial state (expanded/collapsed) of the billing address collapsible section.
+**Parameters**
+- `$collapsible_initial_state` (string) The initial state as either `'expanded'` or `'collapsed'`. Defaults to `'expanded'` or `'collapsed'` based on billing same as shipping state.
+**Context** Used in `templates/fc/checkout-steps/checkout/form-billing.php` when rendering the collapsible section
+**Example**
+```php
+/**
+ * Start with billing address collapsed
+ */
+function start_billing_address_collapsed( $state ) {
+    return 'collapsed';
+}
+add_filter( 'fc_checkout_billing_collapsible_initial_state', 'start_billing_address_collapsed', 10 );
+```
+
+#### `fc_is_billing_address_before_shipping_address`
+**Description** Controls the check for whether the billing address should be displayed before the shipping address in the checkout flow. This filter modifies the return value of the `is_billing_address_before_shipping_address()` method, but does not implement the actual reordering behavior itself. The actual step reordering is implemented by the `fc_billing_step_hook_priority` filter in the PRO plugin, which changes the billing step priority from 30 to 15 when billing should come before shipping.
+**Parameters**
+- `$is_before` (bool) Whether billing address comes before shipping address. Defaults to `false`.
+**Context** Used in `inc/checkout-steps.php` when determining checkout step order
+**Example**
+```php
+/**
+ * Display billing address before shipping address
+ */
+add_filter( 'fc_is_billing_address_before_shipping_address', '__return_true', 10 );
+```
+
+#### `fc_is_billing_address_forced_same_as_shipping_address`
+**Description** Controls whether the billing address is forced to be the same as the shipping address.
+**Parameters**
+- `$is_forced` (bool) Whether billing address is forced to be same as shipping. Defaults to `false`.
+**Context** Used in `inc/checkout-steps.php` when determining address behavior
+**Example**
+```php
+/**
+ * Force billing address to always be same as shipping
+ */
+add_filter( 'fc_is_billing_address_forced_same_as_shipping_address', '__return_true', 10 );
+```
+
+#### `fc_billing_same_as_shipping_option_label`
+**Description** Modifies the label text for the "Same as shipping address" option in billing section.
+**Parameters**
+- `$label` (string) The option label text. Defaults to `__( 'Same as shipping address', 'fluid-checkout' )`.
+**Context** Used in `inc/checkout-steps.php` when rendering the billing same as shipping option
+**Example**
+```php
+/**
+ * Customize billing same as shipping option label
+ */
+function customize_billing_same_as_shipping_label( $label ) {
+    return __( 'Use shipping address for billing', 'my-theme' );
+}
+add_filter( 'fc_billing_same_as_shipping_option_label', 'customize_billing_same_as_shipping_label', 10 );
+```
+
+#### `fc_billing_same_as_shipping_skip_fields`
+**Description** Defines which fields to skip when copying shipping address to billing address.
+**Parameters**
+- `$skip_fields` (array) Array of field keys to skip. Defaults to empty array.
+**Context** Used in `inc/checkout-steps.php` when copying address data
+**Example**
+```php
+/**
+ * Skip phone field when copying shipping to billing
+ */
+function skip_phone_when_copying_shipping_to_billing( $skip_fields ) {
+    $skip_fields[] = 'billing_phone';
+    return $skip_fields;
+}
+add_filter( 'fc_billing_same_as_shipping_skip_fields', 'skip_phone_when_copying_shipping_to_billing', 10 );
+```
+
+#### `fc_billing_same_as_shipping_field_keys`
+**Description** Defines which field keys to copy from shipping address to billing address.
+**Parameters**
+- `$field_keys` (array) Array of field keys to copy. Defaults to standard address fields.
+**Context** Used in `inc/checkout-steps.php` when copying address data
+**Example**
+```php
+/**
+ * Add custom field to shipping to billing copy
+ */
+function add_custom_field_to_shipping_billing_copy( $field_keys ) {
+    $field_keys[] = 'billing_company';
+    return $field_keys;
+}
+add_filter( 'fc_billing_same_as_shipping_field_keys', 'add_custom_field_to_shipping_billing_copy', 10 );
+```
+
+#### `fc_output_billing_same_as_shipping_as_hidden_field`
+**Description** Controls whether to output the billing same as shipping option as a hidden field instead of a checkbox.
+**Parameters**
+- `$output_as_hidden` (bool) Whether to output as hidden field. Defaults to `false`.
+**Context** Used in `inc/checkout-steps.php` when rendering the billing same as shipping option
+**Example**
+```php
+/**
+ * Force billing same as shipping as hidden field
+ */
+add_filter( 'fc_output_billing_same_as_shipping_as_hidden_field', '__return_true', 10 );
+```
 
 ### Address Data Management
 
-- `fc_is_billing_address_data_same_as_shipping_before` - Allows intercepting billing address data comparison
-- `fc_is_billing_same_as_shipping_checked` - Controls whether billing same as shipping is checked by default
-- `fc_default_to_billing_same_as_shipping` - Controls default state of billing same as shipping checkbox
-- `fc_save_new_address_data_billing_skip_update` - Controls whether to skip updating billing address data
-- `fc_billing_same_as_shipping_field_value` - Modifies field values when copying shipping to billing
-- `fc_shipping_same_as_billing_field_value` - Modifies field values when copying billing to shipping
+#### `fc_is_billing_address_data_same_as_shipping_before`
+**Description** Allows intercepting the comparison between billing and shipping address data before the default comparison.
+**Parameters**
+- `$is_same` (bool|null) Whether addresses are the same. Return `null` to use default comparison.
+**Context** Used in `inc/checkout-steps.php` when comparing address data
+**Example**
+```php
+/**
+ * Custom billing address comparison logic
+ */
+function custom_billing_address_comparison( $is_same ) {
+    // Custom comparison logic - return true/false or null for default comparison
+    return null; // Use default comparison
+}
+add_filter( 'fc_is_billing_address_data_same_as_shipping_before', 'custom_billing_address_comparison', 10, 1 );
+```
+
+#### `fc_is_billing_same_as_shipping_checked`
+**Description** Controls whether the "billing same as shipping" checkbox is checked by default.
+**Parameters**
+- `$is_checked` (bool) Whether the checkbox should be checked. Defaults to `false`.
+**Context** Used in `inc/checkout-steps.php` when determining checkbox state
+**Example**
+```php
+/**
+ * Check billing same as shipping by default
+ */
+add_filter( 'fc_is_billing_same_as_shipping_checked', '__return_true', 10 );
+```
+
+#### `fc_default_to_billing_same_as_shipping`
+**Description** Controls the default state of the billing same as shipping checkbox based on plugin settings. This filter affects both billing→shipping and shipping→billing scenarios depending on which address section is displayed first. Only applies during initial page load, not during AJAX updates.
+**Parameters**
+- `$default_value` (bool) Whether to default to billing same as shipping. Defaults to plugin setting value (`'yes'` === `true`).
+**Context** Used in `inc/checkout-steps.php` when determining default checkbox state in both `is_billing_same_as_shipping_checked()` and `is_shipping_same_as_billing_checked()` functions
+**Example**
+```php
+/**
+ * Force default to billing same as shipping regardless of settings
+ */
+add_filter( 'fc_default_to_billing_same_as_shipping', '__return_true', 10 );
+```
+
+#### `fc_save_new_address_data_billing_skip_update`
+**Description** Controls whether to skip updating billing address data when saving new address information.
+**Parameters**
+- `$skip_update` (bool) Whether to skip the update. Defaults to `false`.
+- `$posted_data` (array) The posted data array.
+**Context** Used in `inc/checkout-steps.php` when saving address data
+**Example**
+```php
+/**
+ * Skip updating billing address data
+ */
+function skip_billing_address_update( $skip_update, $posted_data ) {
+    return true; // Skip the update
+}
+add_filter( 'fc_save_new_address_data_billing_skip_update', 'skip_billing_address_update', 10, 2 );
+```
+
+#### `fc_billing_same_as_shipping_field_value`
+**Description** Modifies field values when copying shipping address to billing address.
+**Parameters**
+- `$new_field_value` (mixed) The field value to be copied.
+- `$field_key` (string) The billing field key.
+- `$shipping_field_key` (string) The shipping field key.
+- `$posted_data` (array) The posted data array.
+**Context** Used in `inc/checkout-steps.php` when copying address data
+**Example**
+```php
+/**
+ * Customize field values when copying shipping to billing
+ */
+function customize_billing_field_value( $new_field_value, $field_key, $shipping_field_key, $posted_data ) {
+    if ( 'billing_first_name' === $field_key ) {
+        return 'Customer ' . $new_field_value;
+    }
+    return $new_field_value;
+}
+add_filter( 'fc_billing_same_as_shipping_field_value', 'customize_billing_field_value', 10, 4 );
+```
+
+#### `fc_shipping_same_as_billing_field_value`
+**Description** Modifies field values when copying billing address to shipping address.
+**Parameters**
+- `$field_value` (mixed) The field value to be copied.
+- `$shipping_field_key` (string) The shipping field key.
+- `$billing_field_key` (string) The billing field key.
+- `$posted_data` (array) The posted data array.
+**Context** Used in `inc/checkout-steps.php` when copying address data
+**Example**
+```php
+/**
+ * Customize field values when copying billing to shipping
+ */
+function customize_shipping_field_value( $field_value, $shipping_field_key, $billing_field_key, $posted_data ) {
+    // Customize specific field values
+    if ( 'shipping_company' === $shipping_field_key ) {
+        return 'Shipping Company Name';
+    }
+    return $field_value;
+}
+add_filter( 'fc_shipping_same_as_billing_field_value', 'customize_shipping_field_value', 10, 4 );
+```
 
 ### Billing Address Completion
 
-- `fc_is_substep_complete_billing_address` - Controls completion of billing address substep
-- `fc_is_substep_complete_billing_address_field_keys_skip_list` - Defines field keys to skip for billing address completion
-- `fc_billing_same_as_shipping_display_substep_review_text_notice` - Controls whether to display "same as shipping" notice in substep text
-- `fc_billing_substep_text_address_data` - Modifies billing address data for substep text
+#### `fc_is_substep_complete_billing_address`
+**Description** Controls whether the billing address substep is considered complete.
+**Parameters**
+- `$is_complete` (bool) Whether the substep is complete. Defaults to validation result based on required fields.
+**Context** Used in `inc/checkout-steps.php` when checking substep completion
+**Example**
+```php
+/**
+ * Always consider billing address complete
+ */
+add_filter( 'fc_is_substep_complete_billing_address', '__return_true', 10 );
+```
+
+#### `fc_is_substep_complete_billing_address_field_keys_skip_list`
+**Description** Defines which field keys to skip when checking billing address completion.
+**Parameters**
+- `$skip_field_keys` (array) Array of field keys to skip. Defaults to contact step display field IDs.
+**Context** Used in `inc/checkout-steps.php` when validating address completion
+**Example**
+```php
+/**
+ * Skip phone field when checking billing address completion
+ */
+function skip_phone_in_billing_completion( $skip_field_keys ) {
+    $skip_field_keys[] = 'billing_phone';
+    return $skip_field_keys;
+}
+add_filter( 'fc_is_substep_complete_billing_address_field_keys_skip_list', 'skip_phone_in_billing_completion', 10 );
+```
+
+#### `fc_billing_same_as_shipping_display_substep_review_text_notice`
+**Description** Controls whether to display a "same as shipping" notice in the billing address substep text.
+**Parameters**
+- `$display_notice` (bool) Whether to display the notice. Defaults to `true`.
+**Context** Used in `inc/checkout-steps.php` when generating substep text
+**Example**
+```php
+/**
+ * Hide same as shipping notice in billing substep text
+ */
+add_filter( 'fc_billing_same_as_shipping_display_substep_review_text_notice', '__return_false', 10 );
+```
+
+#### `fc_billing_substep_text_address_data`
+**Description** Modifies billing address data used for generating substep review text display.
+**Parameters**
+- `$address_data` (array) The address data array containing field values for display.
+**Context** Used in `inc/checkout-steps.php` when generating billing address substep text
+**Example**
+```php
+/**
+ * Customize billing address data for substep display
+ */
+function customize_billing_substep_data( $address_data ) {
+    // Remove phone number from substep display
+    unset( $address_data['phone'] );
+    return $address_data;
+}
+add_filter( 'fc_billing_substep_text_address_data', 'customize_billing_substep_data', 10, 1 );
+```
 
 ### Address Field Management
 
-- `fc_address_field_keys_skip_list` - Defines field keys to skip in address processing
-- `fc_address_field_keys` - Modifies address field keys for processing
-- `fc_skip_change_customer_address_field_value_from_checkout_data` - Controls whether to skip changing customer address field values
-- `fc_skip_checkout_field_value_from_session_or_posted_data` - Controls whether to skip field values from session or posted data
+#### `fc_address_field_keys_skip_list`
+**Description** Defines field keys to skip in address processing and field updates.
+**Parameters**
+- `$skip_field_keys` (array) Array of field keys to skip. Defaults to array containing email field.
+**Context** Used in `inc/checkout-steps.php` when processing address field updates
+**Example**
+```php
+/**
+ * Skip phone field in address processing
+ */
+function skip_phone_in_address_processing( $skip_field_keys ) {
+    $skip_field_keys[] = 'billing_phone';
+    $skip_field_keys[] = 'shipping_phone';
+    return $skip_field_keys;
+}
+add_filter( 'fc_address_field_keys_skip_list', 'skip_phone_in_address_processing', 10 );
+```
+
+#### `fc_address_field_keys`
+**Description** Modifies address field keys for processing and updates.
+**Parameters**
+- `$field_keys` (array) Array of field keys to process.
+- `$address_type` (string) The address type ('billing' or 'shipping').
+**Context** Used in `inc/checkout-steps.php` when processing address field updates
+**Example**
+```php
+/**
+ * Add custom fields to address processing
+ */
+function add_custom_fields_to_address_processing( $field_keys, $address_type ) {
+    $field_keys[] = $address_type . '_custom_field';
+    return $field_keys;
+}
+add_filter( 'fc_address_field_keys', 'add_custom_fields_to_address_processing', 10, 2 );
+```
+
+#### `fc_skip_change_customer_address_field_value_from_checkout_data`
+**Description** Controls whether to skip changing customer address field values from checkout data.
+**Parameters**
+- `$skip_change` (bool) Whether to skip changing the field value. Defaults to `false`.
+- `$value` (mixed) The current field value.
+- `$customer` (WC_Customer) The customer object.
+**Context** Used in `inc/checkout-steps.php` when updating customer address field values
+**Example**
+```php
+/**
+ * Skip changing customer address field values
+ */
+function skip_customer_address_field_changes( $skip_change, $value, $customer ) {
+    return true; // Skip all changes
+}
+add_filter( 'fc_skip_change_customer_address_field_value_from_checkout_data', 'skip_customer_address_field_changes', 10, 3 );
+```
+
+#### `fc_skip_checkout_field_value_from_session_or_posted_data`
+**Description** Controls whether to skip getting field values from session or posted data.
+**Parameters**
+- `$skip_value` (bool) Whether to skip getting the field value. Defaults to `false`.
+- `$input` (string) The checkout field key.
+**Context** Used in `inc/checkout-steps.php` when retrieving field values from session or posted data
+**Example**
+```php
+/**
+ * Skip getting field values from session for specific fields
+ */
+function skip_session_values_for_fields( $skip_value, $input ) {
+    if ( 'billing_phone' === $input ) {
+        return true; // Skip getting phone value from session
+    }
+    return $skip_value;
+}
+add_filter( 'fc_skip_checkout_field_value_from_session_or_posted_data', 'skip_session_values_for_fields', 10, 2 );
+```
 
 ### Address Validation
 
-- `fc_checkout_address_i18n_override_locale_required_attribute` - Controls whether to override locale required attributes
-- `fc_checkout_address_i18n_override_locale_attributes` - Modifies locale attributes for address fields
+#### `fc_checkout_address_i18n_override_locale_required_attribute`
+**Description** Controls whether to override locale required attributes with checkout field attributes.
+**Parameters**
+- `$override_required` (bool) Whether to override locale required attributes. Defaults to `false`.
+**Context** Used in `inc/checkout-fields.php` when generating JavaScript settings for address internationalization
+**Example**
+```php
+/**
+ * Override locale required attributes with checkout field attributes
+ */
+add_filter( 'fc_checkout_address_i18n_override_locale_required_attribute', '__return_true', 10 );
+```
+
+#### `fc_checkout_address_i18n_override_locale_attributes`
+**Description** Modifies locale attributes for address fields that should be overridden with checkout field attributes.
+**Parameters**
+- `$override_attributes` (array) Array of attribute names to override. Defaults to empty array or array containing 'required' if `fc_checkout_address_i18n_override_locale_required_attribute` is true.
+**Context** Used in `inc/checkout-fields.php` when generating JavaScript settings for address internationalization
+**Example**
+```php
+/**
+ * Override locale attributes for address fields
+ */
+function override_locale_attributes( $override_attributes ) {
+    $override_attributes[] = 'custom-attribute';
+    return $override_attributes;
+}
+add_filter( 'fc_checkout_address_i18n_override_locale_attributes', 'override_locale_attributes', 10 );
+```
 
 ## Payment Step
 
 ### Payment Methods
 
-- `fc_payment_method_review_text_*` - Modifies review text for specific payment methods
-- `fc_payment_not_needed_message` - Modifies the message when no payment is needed
-- `fc_place_order_button_classes` - Adds custom classes to the place order button
+#### `fc_payment_method_review_text_*`
+**Description** Modifies review text for specific payment methods displayed in substep text. The filter name includes the payment method key (e.g., `fc_payment_method_review_text_bacs` for BACS payments).
+**Parameters**
+- `$payment_method_review_text` (string) The review text HTML containing payment method icon and title. Defaults to `<span class="payment-method-icon">[icon]</span><span class="payment-method-title">[title]</span>`.
+- `$gateway` (WC_Payment_Gateway) The payment gateway object.
+**Context** Used in `inc/checkout-steps.php` when generating payment method substep text
+**Example**
+```php
+/**
+ * Customize BACS payment method review text
+ */
+function customize_bacs_payment_review_text( $payment_method_review_text, $gateway ) {
+    return '<span class="payment-method-title">' . __( 'Bank Transfer Payment', 'my-theme' ) . '</span>';
+}
+add_filter( 'fc_payment_method_review_text_bacs', 'customize_bacs_payment_review_text', 10, 2 );
+```
+
+#### `fc_payment_not_needed_message`
+**Description** Modifies the message displayed when no payment is needed (e.g., free orders or gift cards covering full amount).
+**Parameters**
+- `$message` (string) The message text. Defaults to formatted message with order total amount.
+**Context** Used in `templates/fc/checkout-steps/checkout/payment.php` when payment is not required
+**Example**
+```php
+/**
+ * Customize payment not needed message
+ */
+function customize_payment_not_needed_message( $message ) {
+    return __( 'Your order is free! No payment required.', 'my-theme' );
+}
+add_filter( 'fc_payment_not_needed_message', 'customize_payment_not_needed_message', 10 );
+```
+
+#### `fc_place_order_button_classes`
+**Description** Adds custom CSS classes to the place order button.
+**Parameters**
+- `$classes` (string) CSS classes for the button. Defaults to `'button alt'`.
+**Context** Used in `inc/checkout-steps.php` when building place order button HTML
+**Example**
+```php
+/**
+ * Add custom classes to place order button
+ */
+function add_place_order_button_classes( $classes ) {
+    return $classes . ' custom-place-order primary-checkout-btn';
+}
+add_filter( 'fc_place_order_button_classes', 'add_place_order_button_classes', 10 );
+```
 
 ### Order Notes
 
-- `fc_no_order_notes_order_review_notice` - Modifies the notice when no order notes are provided
-- `fc_no_substep_review_text_notice` - Modifies the notice text for substeps with no review content
+#### `fc_no_order_notes_order_review_notice`
+**Description** Modifies the notice text displayed when no order notes are provided in the order review section.
+**Parameters**
+- `$notice_text` (string) The notice text to display. Defaults to the result of `get_no_substep_review_text_notice()` function.
+**Context** Used in `inc/compat/plugins/compat-plugin-yith-woocommerce-checkout-manager.php` when no order notes are available
+**Example**
+```php
+/**
+ * Customize no order notes notice
+ */
+function customize_no_order_notes_notice( $notice_text ) {
+    return __( 'No special instructions provided.', 'my-theme' );
+}
+add_filter( 'fc_no_order_notes_order_review_notice', 'customize_no_order_notes_notice', 10 );
+```
+
+#### `fc_no_substep_review_text_notice`
+**Description** Modifies the notice text displayed for substeps when there is no review content available.
+**Parameters**
+- `$notice_text` (string) The notice text to display. Defaults to `_x( 'None.', 'Substep review text', 'fluid-checkout' )`.
+- `$substep_id` (string) The substep identifier.
+**Context** Used in `inc/checkout-steps.php` when generating substep review text for empty substeps
+**Example**
+```php
+/**
+ * Customize no substep review text notice
+ */
+function customize_no_substep_review_notice( $notice_text, $substep_id ) {
+    if ( 'order_notes' === $substep_id ) {
+        return __( 'No notes added.', 'my-theme' );
+    }
+    return __( 'Not specified.', 'my-theme' );
+}
+add_filter( 'fc_no_substep_review_text_notice', 'customize_no_substep_review_notice', 10, 2 );
+```
 
 ### Coupon Codes
 
-- `fc_coupon_code_substep_step_id` - Modifies the step ID for coupon code substep
-- `fc_display_coupon_code_section_title` - Controls whether to display coupon code section title
-- `fc_coupon_code_substep_priority` - Modifies the priority for coupon code substep
-- `fc_coupon_code_displayed_as_substep` - Controls whether coupon codes are displayed as substep
-- `fc_substep_coupon_codes_section_title` - Modifies the section title for coupon codes substep
-- `fc_checkout_coupons_script_settings` - Modifies JavaScript settings for checkout coupons
-- `fc_coupon_code_field_label` - Modifies the coupon code field label
-- `fc_coupon_code_field_description` - Modifies the coupon code field description
-- `fc_coupon_code_field_placeholder` - Modifies the coupon code field placeholder
-- `fc_coupon_code_button_label` - Modifies the coupon code button label
-- `fc_coupon_code_field_initially_expanded` - Controls whether coupon code field is initially expanded
-- `fc_expansible_section_toggle_label_*` - Modifies toggle labels for expansible sections
-- `fc_coupon_code_apply_button_classes` - Adds custom classes to coupon code apply button
-- `fc_substep_coupon_codes_text` - Modifies the text content for coupon codes substep
-- `fc_coupon_code_error_message_dismiss_button_enabled` - Controls whether to show dismiss button for coupon error messages
-- `fc_coupon_code_error_message_dismiss_button` - Modifies the dismiss button for coupon error messages
+#### `fc_coupon_code_substep_step_id`
+**Description** Modifies the step ID where the coupon code substep should be displayed.
+**Parameters**
+- `$step_id` (string) The step ID. Defaults to `'payment'`.
+**Context** Used in `inc/checkout-coupon-codes.php` when registering coupon code substep
+**Example**
+```php
+/**
+ * Display coupon codes in shipping step
+ */
+function move_coupon_codes_to_shipping_step( $step_id ) {
+    return 'shipping';
+}
+add_filter( 'fc_coupon_code_substep_step_id', 'move_coupon_codes_to_shipping_step', 10 );
+```
+
+#### `fc_display_coupon_code_section_title`
+**Description** Controls whether to display the coupon code section title. This is a plugin setting filter.
+**Parameters**
+- `$display_title` (string|bool) Whether to display the title. Defaults to plugin setting value.
+**Context** Used in `inc/checkout-coupon-codes.php` when determining substep title display
+**Example**
+```php
+/**
+ * Always display coupon code section title
+ */
+add_filter( 'fc_display_coupon_code_section_title', '__return_true', 10 );
+```
+
+#### `fc_coupon_code_substep_priority`
+**Description** Modifies the priority for the coupon code substep within its step.
+**Parameters**
+- `$priority` (int) The substep priority. Defaults to `10`.
+**Context** Used in `inc/checkout-coupon-codes.php` when registering coupon code substep
+**Example**
+```php
+/**
+ * Set higher priority for coupon code substep
+ */
+function set_coupon_code_substep_priority( $priority ) {
+    return 5; // Higher priority (lower number)
+}
+add_filter( 'fc_coupon_code_substep_priority', 'set_coupon_code_substep_priority', 10 );
+```
+
+#### `fc_coupon_code_displayed_as_substep`
+**Description** Controls whether coupon codes are displayed as a substep.
+**Parameters**
+- `$display_as_substep` (bool) Whether to display as substep. Defaults to `true`.
+**Context** Used in `inc/checkout-coupon-codes.php` when determining substep registration
+**Example**
+```php
+/**
+ * Disable coupon code substep display
+ */
+add_filter( 'fc_coupon_code_displayed_as_substep', '__return_false', 10 );
+```
+
+#### `fc_substep_coupon_codes_section_title`
+**Description** Modifies the section title for the coupon codes substep.
+**Parameters**
+- `$title` (string) The section title. Defaults to `__( 'Coupon code', 'woocommerce' )`.
+**Context** Used in `inc/checkout-coupon-codes.php` when registering coupon code substep
+**Example**
+```php
+/**
+ * Customize coupon code substep title
+ */
+function customize_coupon_code_substep_title( $title ) {
+    return __( 'Discount Code', 'my-theme' );
+}
+add_filter( 'fc_substep_coupon_codes_section_title', 'customize_coupon_code_substep_title', 10 );
+```
+
+#### `fc_checkout_coupons_script_settings`
+**Description** Modifies JavaScript settings for checkout coupons functionality.
+**Parameters**
+- `$settings` (array) JavaScript settings array.
+**Context** Used in `inc/checkout-coupon-codes.php` when adding JavaScript settings
+**Example**
+```php
+/**
+ * Add custom JavaScript settings for coupons
+ */
+function add_custom_coupon_js_settings( $settings ) {
+    $settings['customSetting'] = 'value';
+    return $settings;
+}
+add_filter( 'fc_checkout_coupons_script_settings', 'add_custom_coupon_js_settings', 10 );
+```
+
+#### `fc_coupon_code_field_label`
+**Description** Modifies the coupon code field label text.
+**Parameters**
+- `$label` (string) The field label. Defaults to `__( 'Coupon code', 'woocommerce' )`.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering coupon code fields
+**Example**
+```php
+/**
+ * Customize coupon code field label
+ */
+function customize_coupon_code_field_label( $label ) {
+    return __( 'Discount Code', 'my-theme' );
+}
+add_filter( 'fc_coupon_code_field_label', 'customize_coupon_code_field_label', 10 );
+```
+
+#### `fc_coupon_code_field_description`
+**Description** Modifies the coupon code field description text.
+**Parameters**
+- `$description` (string) The field description. Defaults to empty string.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering coupon code fields
+**Example**
+```php
+/**
+ * Add description to coupon code field
+ */
+function add_coupon_code_field_description( $description ) {
+    return __( 'Enter your discount code to apply savings.', 'my-theme' );
+}
+add_filter( 'fc_coupon_code_field_description', 'add_coupon_code_field_description', 10 );
+```
+
+#### `fc_coupon_code_field_placeholder`
+**Description** Modifies the coupon code field placeholder text.
+**Parameters**
+- `$placeholder` (string) The field placeholder. Defaults to `__( 'Enter your code here', 'fluid-checkout' )`.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering coupon code fields
+**Example**
+```php
+/**
+ * Customize coupon code field placeholder
+ */
+function customize_coupon_code_field_placeholder( $placeholder ) {
+    return __( 'Type your discount code', 'my-theme' );
+}
+add_filter( 'fc_coupon_code_field_placeholder', 'customize_coupon_code_field_placeholder', 10 );
+```
+
+#### `fc_coupon_code_button_label`
+**Description** Modifies the coupon code apply button label text.
+**Parameters**
+- `$label` (string) The button label. Defaults to `_x( 'Apply', 'Button label for applying coupon codes', 'fluid-checkout' )`.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering coupon code fields
+**Example**
+```php
+/**
+ * Customize coupon code apply button label
+ */
+function customize_coupon_code_button_label( $label ) {
+    return __( 'Apply Discount', 'my-theme' );
+}
+add_filter( 'fc_coupon_code_button_label', 'customize_coupon_code_button_label', 10 );
+```
+
+#### `fc_coupon_code_field_initially_expanded`
+**Description** Controls whether the coupon code field is initially expanded.
+**Parameters**
+- `$is_expanded` (bool) Whether the field is initially expanded. Defaults to `false`.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering expansible coupon code sections
+**Example**
+```php
+/**
+ * Start with coupon code field expanded
+ */
+add_filter( 'fc_coupon_code_field_initially_expanded', '__return_true', 10 );
+```
+
+#### `fc_expansible_section_toggle_label_*`
+**Description** Modifies toggle labels for expansible sections. The filter name includes the section ID (e.g., `fc_expansible_section_toggle_label_coupon_code`).
+**Parameters**
+- `$toggle_label` (string) The toggle label text. Defaults to formatted label with "Add" prefix.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering expansible coupon code sections
+**Example**
+```php
+/**
+ * Customize coupon code toggle label
+ */
+function customize_coupon_code_toggle_label( $toggle_label ) {
+    return __( 'Have a discount code?', 'my-theme' );
+}
+add_filter( 'fc_expansible_section_toggle_label_coupon_code', 'customize_coupon_code_toggle_label', 10 );
+```
+
+#### `fc_coupon_code_apply_button_classes`
+**Description** Adds custom CSS classes to the coupon code apply button.
+**Parameters**
+- `$classes` (string) CSS classes for the button. Defaults to `'button'`.
+**Context** Used in `inc/checkout-coupon-codes.php` when rendering coupon code apply button
+**Example**
+```php
+/**
+ * Add custom classes to coupon code apply button
+ */
+function add_coupon_code_apply_button_classes( $classes ) {
+    return $classes . ' custom-apply-btn primary-button';
+}
+add_filter( 'fc_coupon_code_apply_button_classes', 'add_coupon_code_apply_button_classes', 10 );
+```
+
+#### `fc_substep_coupon_codes_text`
+**Description** Modifies the text content displayed for the coupon codes substep.
+**Parameters**
+- `$text` (string) The substep text content.
+**Context** Used in `inc/checkout-coupon-codes.php` when generating substep text
+**Example**
+```php
+/**
+ * Customize coupon codes substep text
+ */
+function customize_coupon_codes_substep_text( $text ) {
+    return __( 'Applied discount codes will be shown here.', 'my-theme' );
+}
+add_filter( 'fc_substep_coupon_codes_text', 'customize_coupon_codes_substep_text', 10 );
+```
+
+#### `fc_coupon_code_error_message_dismiss_button_enabled`
+**Description** Controls whether to show a dismiss button for coupon error messages.
+**Parameters**
+- `$enabled` (bool) Whether to show dismiss button. Defaults to `true`.
+**Context** Used in JavaScript when handling coupon error messages
+**Example**
+```php
+/**
+ * Disable dismiss button for coupon error messages
+ */
+add_filter( 'fc_coupon_code_error_message_dismiss_button_enabled', '__return_false', 10 );
+```
+
+#### `fc_coupon_code_error_message_dismiss_button`
+**Description** Modifies the dismiss button HTML for coupon error messages.
+**Parameters**
+- `$button_html` (string) The dismiss button HTML. Default: `'<a href="#dismiss_coupon_message" data-coupon="' . esc_attr( $coupon_code ) . '" class="fc-coupon-code-message-dismiss">' . __( 'Dismiss', 'fluid-checkout' ) . '</a>'`
+**Context** Used in JavaScript when rendering coupon error messages
+**Example**
+```php
+/**
+ * Add custom class to coupon error dismiss button
+ */
+function customize_coupon_error_dismiss_button( $button_html ) {
+    return str_replace( 'class="fc-coupon-code-message-dismiss"', 'class="fc-coupon-code-message-dismiss custom-dismiss-btn"', $button_html );
+}
+add_filter( 'fc_coupon_code_error_message_dismiss_button', 'customize_coupon_error_dismiss_button', 10 );
+```
 
 ### Expansible Sections
 
-- `fc_expansible_section_toggle_label_add_optional_text` - Controls whether to add "optional" text to toggle labels
-- `fc_expansible_section_toggle_label_*_add_optional_text` - Controls optional text for specific toggle labels
-- `fc_substep_change_button_label` - Modifies the "Change" button label for substeps
-- `fc_substep_save_button_classes` - Adds custom classes to substep save button
-- `fc_substep_save_button_label` - Modifies the "Save changes" button label for substeps
+#### `fc_expansible_section_toggle_label_add_optional_text`
+**Description** Controls whether to add "(optional)" text to toggle labels for expansible sections.
+**Parameters**
+- `$add_optional_text` (bool) Whether to add optional text. Defaults to `true`.
+**Context** Used in `inc/checkout-hide-optional-fields.php` when generating toggle labels for optional fields
+**Example**
+```php
+/**
+ * Remove optional text from all toggle labels
+ */
+add_filter( 'fc_expansible_section_toggle_label_add_optional_text', '__return_false', 10 );
+```
+
+#### `fc_expansible_section_toggle_label_*_add_optional_text`
+**Description** Controls whether to add "(optional)" text to toggle labels for specific expansible sections. The filter name includes the field key (e.g., `fc_expansible_section_toggle_label_billing_company_add_optional_text`).
+**Parameters**
+- `$add_optional_text` (bool) Whether to add optional text for this specific field. Defaults to `true`.
+**Context** Used in `inc/checkout-hide-optional-fields.php` when generating toggle labels for specific optional fields
+**Example**
+```php
+/**
+ * Remove optional text from company field toggle label
+ */
+add_filter( 'fc_expansible_section_toggle_label_billing_company_add_optional_text', '__return_false', 10 );
+```
+
+#### `fc_substep_change_button_label`
+**Description** Modifies the "Change" button label text for substeps.
+**Parameters**
+- `$label` (string) The button label text. Defaults to `_x( 'Change', 'Checkout substep change link label', 'fluid-checkout' )`.
+**Context** Used in `inc/checkout-steps.php` when rendering substep change buttons
+**Example**
+```php
+/**
+ * Customize substep change button label
+ */
+function customize_substep_change_button_label( $label ) {
+    return __( 'Edit', 'my-theme' );
+}
+add_filter( 'fc_substep_change_button_label', 'customize_substep_change_button_label', 10 );
+```
+
+#### `fc_substep_save_button_classes`
+**Description** Adds custom CSS classes to the substep save button.
+**Parameters**
+- `$classes` (string) CSS classes for the button. Defaults to `'button'`.
+**Context** Used in `inc/checkout-steps.php` when rendering substep save buttons
+**Example**
+```php
+/**
+ * Add custom classes to substep save button
+ */
+function add_substep_save_button_classes( $classes ) {
+    return $classes . ' custom-save-btn primary-button';
+}
+add_filter( 'fc_substep_save_button_classes', 'add_substep_save_button_classes', 10 );
+```
+
+#### `fc_substep_save_button_label`
+**Description** Modifies the "Save changes" button label text for substeps.
+**Parameters**
+- `$label` (string) The button label text. Defaults to `_x( 'Save changes', 'Checkout substep save link label', 'fluid-checkout' )`.
+**Context** Used in `inc/checkout-steps.php` when rendering substep save buttons
+**Example**
+```php
+/**
+ * Customize substep save button label
+ */
+function customize_substep_save_button_label( $label ) {
+    return __( 'Update', 'my-theme' );
+}
+add_filter( 'fc_substep_save_button_label', 'customize_substep_save_button_label', 10 );
+```
 
 ### Hide Optional Fields
 
-- `fc_hide_optional_fields_skip_list` - Defines fields to skip when hiding optional fields
-- `fc_hide_optional_fields_skip_field` - Controls whether to skip hiding specific fields
-- `fc_hide_optional_fields_skip_types` - Defines field types to skip when hiding optional fields
-- `fc_hide_optional_fields_skip_by_class` - Defines CSS classes to skip when hiding optional fields
+#### `fc_hide_optional_fields_skip_list`
+**Description** Defines field keys to skip when hiding optional fields behind expansible sections.
+**Parameters**
+- `$skip_field_keys` (array) Array of field keys to skip. Defaults to empty array.
+**Context** Used in `inc/checkout-hide-optional-fields.php` when determining which fields to hide
+**Example**
+```php
+/**
+ * Skip hiding specific optional fields
+ */
+function skip_hiding_specific_fields( $skip_field_keys ) {
+    $skip_field_keys[] = 'billing_company';
+    $skip_field_keys[] = 'shipping_company';
+    return $skip_field_keys;
+}
+add_filter( 'fc_hide_optional_fields_skip_list', 'skip_hiding_specific_fields', 10 );
+```
+
+#### `fc_hide_optional_fields_skip_field`
+**Description** Controls whether to skip hiding a specific optional field.
+**Parameters**
+- `$skip_field` (bool) Whether to skip hiding this field. Defaults to `false`.
+- `$key` (string) The field key.
+- `$args` (array) The field arguments.
+- `$value` (mixed) The field value.
+**Context** Used in `inc/checkout-hide-optional-fields.php` when processing individual fields
+**Example**
+```php
+/**
+ * Skip hiding company fields based on conditions
+ */
+function skip_hiding_company_fields( $skip_field, $key, $args, $value ) {
+    if ( 'billing_company' === $key && ! empty( $value ) ) {
+        return true; // Skip hiding if field has value
+    }
+    return $skip_field;
+}
+add_filter( 'fc_hide_optional_fields_skip_field', 'skip_hiding_company_fields', 10, 4 );
+```
+
+#### `fc_hide_optional_fields_skip_types`
+**Description** Defines field types to skip when hiding optional fields.
+**Parameters**
+- `$skip_types` (array) Array of field types to skip. Defaults to `array( 'state', 'country', 'select', 'checkbox', 'radio', 'hidden' )`.
+**Context** Used in `inc/checkout-hide-optional-fields.php` when determining field types to skip
+**Example**
+```php
+/**
+ * Add textarea fields to skip list
+ */
+function add_textarea_to_skip_types( $skip_types ) {
+    $skip_types[] = 'textarea';
+    return $skip_types;
+}
+add_filter( 'fc_hide_optional_fields_skip_types', 'add_textarea_to_skip_types', 10 );
+```
+
+#### `fc_hide_optional_fields_skip_by_class`
+**Description** Defines CSS classes to skip when hiding optional fields.
+**Parameters**
+- `$skip_classes` (array) Array of CSS classes to skip. Defaults to `array( 'fc-skip-hide-optional-field' )`.
+**Context** Used in `inc/checkout-hide-optional-fields.php` when checking field classes
+**Example**
+```php
+/**
+ * Add custom class to skip list
+ */
+function add_custom_skip_class( $skip_classes ) {
+    $skip_classes[] = 'always-visible-field';
+    return $skip_classes;
+}
+add_filter( 'fc_hide_optional_fields_skip_by_class', 'add_custom_skip_class', 10 );
+```
 
 ## Order Summary
 
