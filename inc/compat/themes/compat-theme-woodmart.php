@@ -73,6 +73,9 @@ class FluidCheckout_ThemeCompat_Woodmart extends FluidCheckout {
 		// Bail if theme functions and classes are not available
 		if ( ! function_exists( 'woodmart_get_opt' ) || ! class_exists( 'XTS\Modules\Shipping_Progress_Bar\Main' ) || ! class_exists( 'XTS\Modules\Layouts\Main' ) ) { return; }
 
+		// Check if the classes have the get_instance method
+		if ( ! method_exists( 'XTS\Modules\Shipping_Progress_Bar\Main', 'get_instance' ) || ! method_exists( 'XTS\Modules\Layouts\Main', 'get_instance' ) ) { return; }
+
 		// Get theme class instances
 		$free_shipping_bar_instance = XTS\Modules\Shipping_Progress_Bar\Main::get_instance();
 		$builder_instance = XTS\Modules\Layouts\Main::get_instance();
@@ -262,6 +265,9 @@ class FluidCheckout_ThemeCompat_Woodmart extends FluidCheckout {
 	public function maybe_add_free_shipping_bar_fragment( $fragments ) {
 		// Bail if theme functions and classes are not available
 		if ( ! function_exists( 'woodmart_get_opt' ) || ! class_exists( 'XTS\Modules\Shipping_Progress_Bar\Main' ) || ! class_exists( 'XTS\Modules\Layouts\Main' ) ) { return $fragments; }
+
+		// Check if the classes have the get_instance method
+		if ( ! method_exists( 'XTS\Modules\Shipping_Progress_Bar\Main', 'get_instance' ) || ! method_exists( 'XTS\Modules\Layouts\Main', 'get_instance' ) ) { return $fragments; }
 
 		// Get theme class instances
 		$free_shipping_bar_instance = XTS\Modules\Shipping_Progress_Bar\Main::get_instance();
