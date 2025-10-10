@@ -3431,93 +3431,961 @@ add_filter( 'fc_hide_optional_fields_skip_by_class', 'add_custom_skip_class', 10
 
 ### Order Summary Display
 
-- `fc_order_review_title` - Modifies the order review title
-- `fc_order_summary_display_desktop_edit_cart_link` - Controls whether to display edit cart link on desktop
-- `fc_order_summary_continue_button_classes` - Adds custom classes to order summary continue button
-- `fc_checkout_order_review_table_classes` - Adds custom classes to checkout review order table
-- `fc_pro_checkout_review_order_table_classes` - Adds custom classes to pro checkout review order table
+#### `fc_order_review_title`
+**Description** Modifies the order review/order summary section title.
+**Parameters**
+- `$title` (string) The order review title. Defaults to `__( 'Order summary', 'fluid-checkout' )`.
+**Context** Used in `inc/checkout-steps.php` in the `get_order_review_title()` method
+**Example**
+```php
+/**
+ * Change order summary title
+ */
+function change_order_summary_title( $title ) {
+    return __( 'Your Order', 'my-theme' );
+}
+add_filter( 'fc_order_review_title', 'change_order_summary_title', 10 );
+```
+
+#### `fc_order_summary_display_desktop_edit_cart_link`
+**Description** Controls whether to display the "Edit cart" link in the order summary header section on desktop.
+**Parameters**
+- `$enabled` (bool) Whether to display the edit cart link. Defaults to `true`.
+**Context** Used in `inc/checkout-steps.php` in the `output_order_review_header_edit_cart_link()` method
+**Example**
+```php
+/**
+ * Hide edit cart link on desktop
+ */
+add_filter( 'fc_order_summary_display_desktop_edit_cart_link', '__return_false', 10 );
+```
+
+#### `fc_order_summary_continue_button_classes`
+**Description** Adds custom CSS classes to the order summary "Continue" button on mobile.
+**Parameters**
+- `$classes` (string) CSS classes for the button. Defaults to `'button'`.
+**Context** Used in `templates/fc/checkout-steps/checkout/review-order-section.php`
+**Location** This button appears in the mobile checkout header - click the cart icon in the top-right corner to open the order summary modal. The "Continue" button is located at the bottom of this modal.
+**Example**
+```php
+/**
+ * Add custom classes to order summary continue button
+ */
+function add_order_summary_continue_button_classes( $classes ) {
+    return $classes . ' custom-continue-btn primary';
+}
+add_filter( 'fc_order_summary_continue_button_classes', 'add_order_summary_continue_button_classes', 10 );
+```
+
+#### `fc_pro_checkout_review_order_table_classes`
+**Description** Adds custom CSS classes to the checkout review order table element.
+**Parameters**
+- `$classes` (string) CSS classes for the table. Defaults to `''`.
+**Context** Used in `templates/fc/checkout-steps/checkout/review-order.php`
+**Example**
+```php
+/**
+ * Add custom classes to checkout review order table
+ */
+function add_checkout_review_order_table_classes( $classes ) {
+    return $classes . ' custom-order-table highlight-table';
+}
+add_filter( 'fc_pro_checkout_review_order_table_classes', 'add_checkout_review_order_table_classes', 10 );
+```
+
+
 
 ### Shipping Display
 
-- `fc_checkout_no_shipping_method_chosen_html` - Modifies HTML when no shipping method is chosen
-- `fc_order_summary_shipping_package_name` - Modifies the shipping package name in order summary
-- `fc_order_summary_shipping_package_price_html` - Modifies the shipping package price HTML in order summary
-- `fc_enable_order_summary_cart_item_unit_price` - Controls whether to display unit prices in order summary
+#### `fc_checkout_no_shipping_method_chosen_html`
+**Description** Modifies the HTML displayed when no shipping method has been chosen in the order summary.
+**Parameters**
+- `$html` (string) The HTML to display. Defaults to a formatted string containing `'--'` followed by the shipping destination in bold.
+**Context** Used in `templates/fc/checkout-steps/checkout/review-order-shipping.php`
+**Example**
+```php
+/**
+ * Customize no shipping method chosen message
+ */
+function customize_no_shipping_chosen_html( $html ) {
+    return '<span class="no-shipping">' . __( 'Please select a shipping method', 'my-theme' ) . '</span>';
+}
+add_filter( 'fc_checkout_no_shipping_method_chosen_html', 'customize_no_shipping_chosen_html', 10 );
+```
+
+#### `fc_order_summary_shipping_package_name`
+**Description** Modifies the shipping package name displayed in the order summary.
+**Parameters**
+- `$package_name` (string) The package name.
+- `$method` (WC_Shipping_Rate|false) The shipping method object or `false`.
+- `$package_index` (int) The package index.
+- `$package` (array) The package data array.
+**Context** Used in `inc/checkout-steps.php` in the `get_shipping_data_for_packages()` method
+**Example**
+```php
+/**
+ * Customize shipping package name in order summary
+ */
+function customize_shipping_package_name( $package_name, $method, $package_index, $package ) {
+     return sprintf( __( 'Package %d', 'my-theme' ), $package_index + 1 );
+
+    return $package_name;
+}
+add_filter( 'fc_order_summary_shipping_package_name', 'customize_shipping_package_name', 10, 4 );
+```
+
+#### `fc_order_summary_shipping_package_price_html`
+**Description** Modifies the shipping package price HTML displayed in the order summary.
+**Parameters**
+- `$shipping_total_label` (string) The formatted shipping price HTML.
+- `$method` (WC_Shipping_Rate|false) The shipping method object or `false`.
+- `$package_index` (int) The package index.
+- `$package` (array) The package data array.
+- `$package_name` (string) The package name.
+**Context** Used in `inc/checkout-steps.php` in the `get_cart_totals_shipping_method_label()` method
+**Example**
+```php
+/**
+ * Add custom text to shipping price
+ */
+function customize_shipping_price_html( $shipping_total_label, $method, $package_index, $package, $package_name ) {
+    if ( $method && $method->get_cost() == 0 ) {
+        return '<strong>' . __( 'FREE', 'my-theme' ) . '</strong>';
+    }
+    return $shipping_total_label;
+}
+add_filter( 'fc_order_summary_shipping_package_price_html', 'customize_shipping_price_html', 10, 5 );
+```
+
+#### `fc_enable_order_summary_cart_item_unit_price`
+**Description** Controls whether to display unit prices for cart items in the order summary.
+**Parameters**
+- `$enabled` (bool) Whether to display unit prices. Defaults to `true`.
+**Context** Used in `inc/checkout-steps.php` in the `output_order_summary_cart_item_unit_price()` method
+**Example**
+```php
+/**
+ * Hide unit prices in order summary
+ */
+add_filter( 'fc_enable_order_summary_cart_item_unit_price', '__return_false', 10 );
+```
 
 ### Cart and Product Display
 
-- `fc_checkout_header_cart_link_label_html` - Modifies the cart link label HTML in checkout header
-- `fc_subscription_shipping_package_name` - Modifies shipping package name for subscriptions
-- `fc_shipping_method_option_start_tag_markup` - Modifies opening tag markup for shipping methods
-- `fc_shipping_method_option_end_tag_markup` - Modifies closing tag markup for shipping methods
-- `fc_shipping_method_option_markup` - Modifies the markup for shipping method options
+#### `fc_checkout_header_cart_link_label_html`
+**Description** Modifies the cart link label HTML displayed in the checkout header.
+**Parameters**
+- `$link_label_html` (string) The cart link label HTML (defaults to cart total).
+**Context** Used in `inc/checkout-steps.php` in the `output_checkout_header_cart_link()` method
+**Example**
+```php
+/**
+ * Add item count to cart link
+ */
+function customize_cart_link_label( $link_label_html ) {
+    $item_count = WC()->cart->get_cart_contents_count();
+    return $link_label_html . sprintf( _n( ' (%d item)', ' (%d items)', $item_count, 'my-theme' ), $item_count );
+}
+add_filter( 'fc_checkout_header_cart_link_label_html', 'customize_cart_link_label', 10 );
+```
+
+#### `fc_subscription_shipping_package_name`
+**Description** Modifies the shipping package name for subscription products in the order summary.
+**Parameters**
+- `$package_name` (string) The package name.
+- `$package_index` (int) The package index.
+- `$package` (array) The package data array.
+- `$recurring_cart` (WC_Cart|object) The recurring cart object.
+**Context** Used in `templates/compat/plugins/woocommerce-subscriptions/cart/cart-recurring-shipping.php` for WooCommerce Subscriptions compatibility
+**Example**
+```php
+/**
+ * Customize subscription package name
+ */
+function customize_subscription_package_name( $package_name, $package_index, $package, $recurring_cart ) {
+    return __( 'Subscription Shipping', 'my-theme' );
+}
+add_filter( 'fc_subscription_shipping_package_name', 'customize_subscription_package_name', 10, 4 );
+```
+
+#### `fc_shipping_method_option_start_tag_markup`
+**Description** Modifies the opening tag markup for the shipping methods list wrapper element.
+**Parameters**
+- `$markup` (string) The opening tag markup. Defaults to `'<ul id="shipping_method" class="shipping-method__options">'`.
+**Context** Used in `templates/fc/checkout-steps/cart/shipping-methods-available.php` and subscription shipping templates
+**Example**
+```php
+/**
+ * Change shipping methods wrapper to div
+ */
+function change_shipping_methods_start_tag( $markup ) {
+    return '<ul id="shipping_method" class="shipping-method__options custom-class">';
+}
+add_filter( 'fc_shipping_method_option_start_tag_markup', 'change_shipping_methods_start_tag', 10 );
+```
+
+#### `fc_shipping_method_option_end_tag_markup`
+**Description** Modifies the closing tag markup for the shipping methods list wrapper element.
+**Parameters**
+- `$markup` (string) The closing tag markup. Defaults to `'</ul>'`.
+**Context** Used in `templates/fc/checkout-steps/cart/shipping-methods-available.php` and subscription shipping templates
+**Example**
+```php
+/**
+ * Change shipping methods wrapper closing tag to div
+ */
+function change_shipping_methods_end_tag( $markup ) {
+    return '</div>';
+}
+add_filter( 'fc_shipping_method_option_end_tag_markup', 'change_shipping_methods_end_tag', 10 );
+```
+
+#### `fc_shipping_method_option_markup`
+**Description** Modifies the complete markup for individual shipping method options.
+**Parameters**
+- `$markup` (string) The shipping method option markup.
+- `$method` (WC_Shipping_Rate) The shipping method rate object.
+- `$package_index` (int) The package index.
+- `$chosen_method` (string) The chosen shipping method ID.
+- `$first` (bool) Whether this is the first shipping method in the list.
+**Context** Used in `templates/fc/checkout-steps/cart/shipping-methods-available.php`
+**Example**
+```php
+/**
+ * Add delivery time to shipping method markup
+ */
+function add_delivery_time_to_shipping_method( $markup, $method, $package_index, $chosen_method, $first ) {
+    $delivery_time = $method->get_meta_data()['delivery_time'] ?? '';
+    if ( $delivery_time ) {
+        $markup = str_replace( '</label>', '<span class="delivery-time">' . esc_html( $delivery_time ) . '</span></label>', $markup );
+    }
+    return $markup;
+}
+add_filter( 'fc_shipping_method_option_markup', 'add_delivery_time_to_shipping_method', 10, 5 );
+```
 
 ### Customer Data Persistence
 
-- `fc_customer_persisted_data_skip_fields` - Defines fields to skip in customer data persistence
-- `fc_customer_persisted_data_session_field_keys` - Defines session field keys for customer data
-- `fc_set_parsed_posted_data` - Modifies parsed posted data before processing
-- `fc_parsed_posted_data_reset_field_keys` - Defines field keys to reset in parsed posted data
-- `fc_customer_persisted_data_clear_fields_order_processed` - Defines fields to clear when order is processed
-- `fc_customer_meta_data_clear_fields_order_processed` - Defines customer meta fields to clear when order is processed
-- `fc_customer_persisted_data_clear_all_fields_skip_list` - Defines fields to skip when clearing all customer data
+#### `fc_customer_persisted_data_skip_fields`
+**Description** Defines field keys to skip when persisting customer data to session.
+**Parameters**
+- `$skip_field_keys` (array) Array of field keys to skip.
+- `$parsed_posted_data` (array) The parsed posted data from the checkout form.
+**Context** Used in `inc/checkout-steps.php` in the `get_session_field_keys()` method
+**Example**
+```php
+/**
+ * Skip persisting specific custom fields
+ */
+function skip_persisting_custom_fields( $skip_field_keys, $parsed_posted_data ) {
+    $skip_field_keys[] = 'custom_temporary_field';
+    $skip_field_keys[] = 'custom_sensitive_field';
+    return $skip_field_keys;
+}
+add_filter( 'fc_customer_persisted_data_skip_fields', 'skip_persisting_custom_fields', 10, 2 );
+```
+
+#### `fc_customer_persisted_data_session_field_keys`
+**Description** Defines session field keys for customer data persistence.
+**Parameters**
+- `$session_field_keys` (array) Array of field keys to persist in session.
+- `$parsed_posted_data` (array) The parsed posted data from the checkout form.
+**Context** Used in `inc/checkout-steps.php` in the `get_session_field_keys()` method
+**Example**
+```php
+/**
+ * Add custom fields to session persistence
+ */
+function add_custom_fields_to_session( $session_field_keys, $parsed_posted_data ) {
+    $session_field_keys[] = 'custom_delivery_notes';
+    $session_field_keys[] = 'custom_gift_message';
+    return $session_field_keys;
+}
+add_filter( 'fc_customer_persisted_data_session_field_keys', 'add_custom_fields_to_session', 10, 2 );
+```
+
+#### `fc_set_parsed_posted_data`
+**Description** Modifies parsed posted data before it is processed and saved to session.
+**Parameters**
+- `$new_posted_data` (array) The parsed posted data array.
+**Context** Used in `inc/checkout-steps.php` in the `set_parsed_posted_data()` method
+**Example**
+```php
+/**
+ * Add prefix to order notes
+ */
+function add_prefix_to_order_notes( $new_posted_data ) {
+    // Add prefix to order notes if present
+    if ( ! empty( $new_posted_data['order_comments'] ) ) {
+        $new_posted_data['order_comments'] = 'Customer note: ' . $new_posted_data['order_comments'];
+    }
+    return $new_posted_data;
+}
+add_filter( 'fc_set_parsed_posted_data', 'add_prefix_to_order_notes', 10 );
+```
+
+#### `fc_parsed_posted_data_reset_field_keys`
+**Description** Defines field keys that should be reset if not present in posted data.
+**Parameters**
+- `$other_fields_keys` (array) Array of field keys to reset. Defaults to `array( 'createaccount' )`.
+- `$posted_data` (array) The posted data array.
+**Context** Used in `inc/checkout-steps.php` in the `maybe_reset_parsed_posted_data_fields()` method
+**Example**
+```php
+/**
+ * Add custom checkbox fields to reset list
+ */
+function add_fields_to_reset_list( $other_fields_keys, $posted_data ) {
+    $other_fields_keys[] = 'custom_newsletter_opt_in';
+    $other_fields_keys[] = 'custom_terms_acceptance';
+    return $other_fields_keys;
+}
+add_filter( 'fc_parsed_posted_data_reset_field_keys', 'add_fields_to_reset_list', 10, 2 );
+```
+
+#### `fc_customer_persisted_data_clear_fields_order_processed`
+**Description** Defines customer data fields to clear from session when an order is successfully processed.
+**Parameters**
+- `$clear_field_keys` (array) Array of field keys to clear from session.
+**Context** Used in `inc/checkout-steps.php` in the `clear_customer_data_order_processed()` method
+**Example**
+```php
+/**
+ * Clear custom fields after order is placed
+ */
+function clear_custom_fields_after_order( $clear_field_keys ) {
+    $clear_field_keys[] = 'custom_gift_message';
+    $clear_field_keys[] = 'custom_delivery_instructions';
+    return $clear_field_keys;
+}
+add_filter( 'fc_customer_persisted_data_clear_fields_order_processed', 'clear_custom_fields_after_order', 10 );
+```
+
+#### `fc_customer_meta_data_clear_fields_order_processed`
+**Description** Defines customer meta data fields to clear when an order is successfully processed.
+**Parameters**
+- `$clear_customer_meta_field_keys` (array) Array of customer meta field keys to clear. Defaults to empty array.
+**Context** Used in `inc/checkout-steps.php` in the `clear_customer_meta_order_processed()` method
+**Example**
+```php
+/**
+ * Clear custom customer meta after order
+ */
+function clear_custom_customer_meta( $clear_customer_meta_field_keys ) {
+    $clear_customer_meta_field_keys[] = '_temporary_preference';
+    $clear_customer_meta_field_keys[] = '_one_time_discount';
+    return $clear_customer_meta_field_keys;
+}
+add_filter( 'fc_customer_meta_data_clear_fields_order_processed', 'clear_custom_customer_meta', 10 );
+```
+
+#### `fc_customer_persisted_data_clear_all_fields_skip_list`
+**Description** Defines fields to skip when clearing all customer data from session.
+**Parameters**
+- `$clear_field_keys_skip_list` (array) Array of field keys to skip clearing. Defaults to `array( 'order_comments' )`.
+**Context** Used in `inc/checkout-steps.php` in the `clear_all_customer_data()` method
+**Example**
+```php
+/**
+ * Preserve additional fields when clearing all data
+ */
+function preserve_fields_on_clear_all( $clear_field_keys_skip_list ) {
+    $clear_field_keys_skip_list[] = 'custom_preferences';
+    $clear_field_keys_skip_list[] = 'custom_saved_selections';
+    return $clear_field_keys_skip_list;
+}
+add_filter( 'fc_customer_persisted_data_clear_all_fields_skip_list', 'preserve_fields_on_clear_all', 10 );
+```
 
 ### Substep Text Display
 
-- `fc_substep_text_display_value_show_field_label` - Controls whether to show field labels in substep text
-- `fc_substep_text_display_value_*_char` - Modifies character used for specific field types in substep text
-- `fc_substep_text_display_value_show_field_label_*` - Controls field label display for specific field types
-- `fc_substep_text_display_value_*` - Modifies display value for specific field types and keys
-- `fc_substep_text_display_value_*` - Modifies display value for specific field keys
+#### `fc_substep_text_display_value_show_field_label`
+**Description** Controls whether to show field labels in substep text display values.
+**Parameters**
+- `$show_field_label` (bool) Whether to show field labels. Defaults to `false`.
+**Context** Used in `inc/checkout-steps.php` in the `get_substep_text_display_value()` method
+**Example**
+```php
+/**
+ * Show field labels in substep display
+ */
+add_filter( 'fc_substep_text_display_value_show_field_label', '__return_true', 10 );
+```
 
-### Email Templates
+#### `fc_substep_text_display_value_password_char`
+**Description** Modifies the character used to mask password field values in substep text display.
+**Parameters**
+- `$char` (string) The masking character. Defaults to `'*'`.
+**Context** Used in `inc/checkout-steps.php` in the `get_substep_text_display_value()` method for password fields
+**Example**
+```php
+/**
+ * Change password masking character
+ */
+function change_password_mask_char( $char ) {
+    return '•';
+}
+add_filter( 'fc_substep_text_display_value_password_char', 'change_password_mask_char', 10 );
+```
 
-- `fc_pro_order_details_customer_billing_address_formatted` - Modifies formatted billing address in order details
-- `fc_pro_order_details_customer_shipping_address_formatted` - Modifies formatted shipping address in order details
-- `fc_pro_order_details_customer_information_show_shipping` - Controls whether to show shipping information in order details
-- `fc_pro_order_details_customer_billing_address_label` - Modifies billing address label in order details
-- `fc_pro_order_details_customer_shipping_address_label` - Modifies shipping address label in order details
+#### `fc_substep_text_display_value_show_field_label_{field_type}`
+**Description** Controls whether to show field label for specific field types in substep text display. Replace `{field_type}` with the actual field type (e.g., `text`, `email`, `number`, `checkbox`, etc.).
+**Parameters**
+- `$show_field_label` (bool) Whether to show field label for this field type.
+**Context** Used in `inc/checkout-steps.php` in the `get_substep_text_display_value()` method for specific field types
+**Example**
+```php
+/**
+ * Show labels for email fields in substep display
+ */
+add_filter( 'fc_substep_text_display_value_show_field_label_email', '__return_true', 10 );
+
+/**
+ * Hide labels for text fields in substep display
+ */
+add_filter( 'fc_substep_text_display_value_show_field_label_text', '__return_false', 10 );
+```
+
+#### `fc_substep_text_display_value_{field_type}`
+**Description** Modifies the display value for specific field types in substep text. Replace `{field_type}` with the actual field type.
+**Parameters**
+- `$field_display_value` (string) The formatted display value.
+- `$field_value` (mixed) The raw field value.
+- `$field_key` (string) The field key.
+- `$field_args` (array) The field arguments.
+**Context** Used in `inc/checkout-steps.php` in the `get_substep_text_display_value()` method
+**Example**
+```php
+/**
+ * Customize display for select fields
+ */
+function customize_select_display_value( $field_display_value, $field_value, $field_key, $field_args ) {
+    return '<strong>' . $field_display_value . '</strong>';
+}
+add_filter( 'fc_substep_text_display_value_select', 'customize_select_display_value', 10, 4 );
+```
+
+#### `fc_substep_text_display_value_{field_key}`
+**Description** Modifies the display value for specific field keys in substep text. Replace `{field_key}` with the actual field key.
+**Parameters**
+- `$field_display_value` (string) The formatted display value.
+- `$field_value` (mixed) The raw field value.
+- `$field_key` (string) The field key.
+- `$field_args` (array) The field arguments.
+**Context** Used in `inc/checkout-steps.php` in the `get_substep_text_display_value()` method
+**Example**
+```php
+/**
+ * Customize display for billing email field
+ */
+function customize_billing_email_display( $field_display_value, $field_value, $field_key, $field_args ) {
+    return '<a href="mailto:' . esc_attr( $field_value ) . '">' . esc_html( $field_display_value ) . '</a>';
+}
+add_filter( 'fc_substep_text_display_value_billing_email', 'customize_billing_email_display', 10, 4 );
+```
+
+### Order Details Page
+
+#### `fc_pro_order_details_customer_shipping_address_formatted`
+**Description** Modifies the formatted shipping address displayed in order details page.
+**Parameters**
+- `$shipping_address_formatted` (string) The formatted shipping address HTML.
+- `$order` (WC_Order) The order object.
+**Context** Used in `templates/fc-pro/order-details/order/order-details-customer.php` in Fluid Checkout PRO
+**Example**
+```php
+/**
+ * Add custom text to shipping address in order details
+ */
+function customize_order_details_shipping_address( $shipping_address_formatted, $order ) {
+    if ( $order->get_meta( '_is_gift' ) ) {
+        $shipping_address_formatted = '<span class="gift-badge">' . __( 'Gift', 'my-theme' ) . '</span>' . $shipping_address_formatted;
+    }
+    return $shipping_address_formatted;
+}
+add_filter( 'fc_pro_order_details_customer_shipping_address_formatted', 'customize_order_details_shipping_address', 10, 2 );
+```
+
+#### `fc_pro_order_details_customer_information_show_shipping`
+**Description** Controls whether to show shipping address section in order details customer information.
+**Parameters**
+- `$show_shipping` (bool) Whether to show shipping address.
+- `$order` (WC_Order) The order object.
+**Context** Used in `templates/fc-pro/order-details/order/order-details-customer.php` in Fluid Checkout PRO
+**Example**
+```php
+/**
+ * Always show shipping address section
+ */
+function always_show_shipping_in_order_details( $show_shipping, $order ) {
+    return true;
+}
+add_filter( 'fc_pro_order_details_customer_information_show_shipping', 'always_show_shipping_in_order_details', 10, 2 );
+```
+
+#### `fc_pro_order_details_customer_billing_address_label`
+**Description** Modifies the billing address section label in order details page.
+**Parameters**
+- `$billing_address_label` (string) The billing address label.
+- `$order` (WC_Order) The order object.
+**Context** Used in `templates/fc-pro/order-details/order/order-details-customer.php` in Fluid Checkout PRO
+**Example**
+```php
+/**
+ * Customize billing address label
+ */
+function customize_billing_label_order_details( $billing_address_label, $order ) {
+    return __( 'Invoice Address', 'my-theme' );
+}
+add_filter( 'fc_pro_order_details_customer_billing_address_label', 'customize_billing_label_order_details', 10, 2 );
+```
+
+#### `fc_pro_order_details_customer_shipping_address_label`
+**Description** Modifies the shipping address section label in order details page.
+**Parameters**
+- `$shipping_address_label` (string) The shipping address label.
+- `$order` (WC_Order) The order object.
+**Context** Used in `templates/fc-pro/order-details/order/order-details-customer.php` in Fluid Checkout PRO
+**Example**
+```php
+/**
+ * Customize shipping address label
+ */
+function customize_shipping_label_order_details( $shipping_address_label, $order ) {
+    return __( 'Delivery Address', 'my-theme' );
+}
+add_filter( 'fc_pro_order_details_customer_shipping_address_label', 'customize_shipping_label_order_details', 10, 2 );
+```
 
 ## Widgets
 
 ### Checkout Sidebar
 
-- `fc_checkout_sidebar_attributes` - Adds custom attributes to checkout sidebar
-- `fc_checkout_sidebar_attributes_inner` - Adds custom attributes to checkout sidebar inner element
+#### `fc_checkout_sidebar_attributes`
+**Description** Adds custom HTML attributes to the checkout sidebar wrapper element.
+**Parameters**
+- `$sidebar_attributes` (array) Associative array of HTML attributes.
+**Context** Used in `inc/checkout-steps.php` in the `output_checkout_order_review_section()` method
+**Example**
+```php
+/**
+ * Add custom attributes to checkout sidebar
+ */
+function add_sidebar_custom_attributes( $sidebar_attributes ) {
+    $sidebar_attributes['data-custom'] = 'value';
+    $sidebar_attributes['aria-label'] = __( 'Order Summary Sidebar', 'my-theme' );
+    return $sidebar_attributes;
+}
+add_filter( 'fc_checkout_sidebar_attributes', 'add_sidebar_custom_attributes', 10 );
+```
+
+#### `fc_checkout_sidebar_attributes_inner`
+**Description** Adds custom HTML attributes to the checkout sidebar inner wrapper element.
+**Parameters**
+- `$sidebar_attributes_inner` (array) Associative array of HTML attributes for the inner element.
+**Context** Used in `inc/checkout-steps.php` in the `output_checkout_order_review_section()` method
+**Example**
+```php
+/**
+ * Add custom attributes to sidebar inner element
+ */
+function add_sidebar_inner_attributes( $sidebar_attributes_inner ) {
+    $sidebar_attributes_inner['data-scroll'] = 'smooth';
+    return $sidebar_attributes_inner;
+}
+add_filter( 'fc_checkout_sidebar_attributes_inner', 'add_sidebar_inner_attributes', 10 );
+```
 
 ### Design and Styling
 
-- `fc_enable_dark_mode_styles` - Controls whether dark mode styles are enabled
-- `fc_apply_button_colors_styles` - Controls whether button color styles are applied
-- `fc_apply_button_design_styles` - Controls whether button design styles are applied
-- `fc_css_variables` - Modifies CSS variables for styling
-- `fc_output_custom_styles` - Adds custom CSS styles
+#### `fc_enable_dark_mode_styles`
+**Description** Controls whether dark mode color scheme styles are enabled for the checkout page.
+**Parameters**
+- `$enabled` (bool) Whether dark mode is enabled. Defaults to plugin settings value.
+**Context** Used in `inc/design-templates.php` in the `is_dark_mode_enabled()` method
+**Example**
+```php
+/**
+ * Force enable dark mode based on time of day
+ */
+function enable_dark_mode_at_night( $enabled ) {
+    $hour = (int) current_time( 'H' );
+    // Enable dark mode between 6 PM and 6 AM
+    if ( $hour >= 18 || $hour < 6 ) {
+        return true;
+    }
+    return $enabled;
+}
+add_filter( 'fc_enable_dark_mode_styles', 'enable_dark_mode_at_night', 10 );
+```
+
+#### `fc_apply_button_colors_styles`
+**Description** Controls whether custom button color styles are applied to the checkout page.
+**Parameters**
+- `$enabled` (bool) Whether button color styles are enabled. Defaults to `false`.
+**Context** Used in `inc/design-templates.php` in the `is_button_color_styles_enabled()` method
+**Example**
+```php
+/**
+ * Enable custom button colors
+ */
+add_filter( 'fc_apply_button_colors_styles', '__return_true', 10 );
+```
+
+#### `fc_apply_button_design_styles`
+**Description** Controls whether custom button design styles are applied to the checkout page.
+**Parameters**
+- `$enabled` (bool) Whether button design styles are enabled. Defaults to `false`.
+**Context** Used in `inc/design-templates.php` in the `is_button_design_styles_enabled()` method
+**Example**
+```php
+/**
+ * Enable custom button design
+ */
+add_filter( 'fc_apply_button_design_styles', '__return_true', 10 );
+```
+
+#### `fc_css_variables`
+**Description** Modifies CSS variables used for styling the checkout page.
+**Parameters**
+- `$css_variables` (array) Multi-dimensional array with CSS variables organized by scope. Defaults to `array( ':root' => array() )`.
+- `$context` (string) The context for which CSS variables are being loaded (e.g., 'frontend', 'admin').
+**Context** Used in `inc/design-templates.php` in the `get_css_variables_styles()` method
+**Example**
+```php
+/**
+ * Add custom CSS variables
+ */
+function add_custom_css_variables( $css_variables, $context ) {
+    if ( 'frontend' === $context ) {
+        $css_variables[':root']['--fc-custom-color'] = '#ff6600';
+        $css_variables[':root']['--fc-custom-spacing'] = '2rem';
+        $css_variables['.fc-sidebar']['--sidebar-background'] = '#f5f5f5';
+    }
+    return $css_variables;
+}
+add_filter( 'fc_css_variables', 'add_custom_css_variables', 10, 2 );
+```
+
+#### `fc_output_custom_styles`
+**Description** Adds custom CSS styles to the checkout page.
+**Parameters**
+- `$custom_styles` (string) Custom CSS styles as a string. Defaults to empty string.
+**Context** Used in `inc/design-templates.php` in the `output_custom_styles()` method
+**Example**
+```php
+/**
+ * Add custom CSS to checkout page
+ */
+function add_custom_checkout_styles( $custom_styles ) {
+    $custom_styles .= '
+        .fc-checkout-form { 
+            max-width: 1200px; 
+        }
+        .fc-sidebar { 
+            background: #fafafa; 
+        }
+    ';
+    return $custom_styles;
+}
+add_filter( 'fc_output_custom_styles', 'add_custom_checkout_styles', 10 );
+```
 
 ### JavaScript Settings
 
-- `fc_js_settings` - Modifies JavaScript settings globally
-- `fc_checkout_script_settings` - Modifies checkout JavaScript settings
-- `fc_checkout_update_before_unload` - Controls whether to update checkout before page unload
-- `fc_checkout_update_on_visibility_change` - Controls whether to update checkout on visibility change
-- `fc_checkout_update_fields_selectors` - Defines field selectors for checkout updates
+#### `fc_js_settings`
+**Description** Modifies JavaScript settings object passed to Fluid Checkout scripts.
+**Parameters**
+- `$settings` (array) Associative array of JavaScript settings.
+**Context** Used in `inc/enqueue.php` in the `get_js_settings()` method
+**Example**
+```php
+/**
+ * Add custom JavaScript settings
+ */
+function add_custom_js_settings( $settings ) {
+    $settings['customFeature'] = array(
+        'enabled' => true,
+        'timeout' => 5000,
+    );
+    return $settings;
+}
+add_filter( 'fc_js_settings', 'add_custom_js_settings', 10 );
+```
+
+#### `fc_checkout_script_settings`
+**Description** Modifies checkout-specific JavaScript settings.
+**Parameters**
+- `$checkout_settings` (array) Associative array of checkout JavaScript settings.
+**Context** Used in `inc/enqueue.php` in the `get_js_settings()` method
+**Example**
+```php
+/**
+ * Customize checkout script settings
+ */
+function customize_checkout_script_settings( $checkout_settings ) {
+    $checkout_settings['customCheckoutOption'] = 'value';
+    return $checkout_settings;
+}
+add_filter( 'fc_checkout_script_settings', 'customize_checkout_script_settings', 10 );
+```
+
+#### `fc_checkout_update_before_unload`
+**Description** Controls whether to trigger checkout update before the page unloads (when user navigates away).
+**Parameters**
+- `$enabled` (string) Whether the feature is enabled. Values: `'yes'` or `'no'`. Defaults to `'yes'`.
+**Context** Used in `inc/enqueue.php` in the checkout script settings
+**Example**
+```php
+/**
+ * Disable checkout update before page unload
+ */
+function disable_checkout_update_before_unload( $enabled ) {
+    return 'no';
+}
+add_filter( 'fc_checkout_update_before_unload', 'disable_checkout_update_before_unload', 10 );
+```
+
+#### `fc_checkout_update_on_visibility_change`
+**Description** Controls whether to trigger checkout update when page visibility changes (tab switching).
+**Parameters**
+- `$enabled` (string) Whether the feature is enabled. Values: `'yes'` or `'no'`. Defaults to `'yes'`.
+**Context** Used in `inc/enqueue.php` in the checkout script settings
+**Example**
+```php
+/**
+ * Disable checkout update on visibility change
+ */
+function disable_update_on_visibility_change( $enabled ) {
+    return 'no';
+}
+add_filter( 'fc_checkout_update_on_visibility_change', 'disable_update_on_visibility_change', 10 );
+```
+
+#### `fc_checkout_update_fields_selectors`
+**Description** Defines CSS selectors for form fields that should trigger checkout updates.
+**Parameters**
+- `$selectors` (array) Array of CSS selectors. Defaults to `array( '.address-field input.input-text', '.update_totals_on_change input.input-text' )`.
+**Context** Used in `inc/enqueue.php` in the checkout script settings
+**Example**
+```php
+/**
+ * Add custom field selectors for checkout updates
+ */
+function add_custom_update_field_selectors( $selectors ) {
+    $selectors[] = '.custom-field input';
+    $selectors[] = '.custom-select select';
+    return $selectors;
+}
+add_filter( 'fc_checkout_update_fields_selectors', 'add_custom_update_field_selectors', 10 );
+```
 
 ### Fragments and Updates
 
-- `fc_enable_fragments_refresh` - Controls whether fragments refresh is enabled
-- `fc_fragments_update_settings` - Modifies settings for fragments update
-- `fc_update_fragments` - Modifies fragments to be updated
+#### `fc_enable_fragments_refresh`
+**Description** Controls whether the fragments refresh feature is enabled for updating specific parts of the checkout page via AJAX.
+**Parameters**
+- `$enabled` (bool) Whether fragments refresh is enabled. Defaults to `false`.
+**Context** Used in `inc/fragments-refresh.php` to conditionally enable the feature
+**Example**
+```php
+/**
+ * Enable fragments refresh feature
+ */
+add_filter( 'fc_enable_fragments_refresh', '__return_true', 10 );
+```
+
+#### `fc_fragments_update_settings`
+**Description** Modifies settings for the fragments update feature.
+**Parameters**
+- `$settings` (array) Associative array of fragments update settings. Defaults to `array( 'updateFragmentsNonce' => wp_create_nonce( 'fc-fragments-refresh' ) )`.
+**Context** Used in `inc/fragments-refresh.php` in the `maybe_add_js_settings()` method
+**Example**
+```php
+/**
+ * Add custom fragments update settings
+ */
+function add_fragments_settings( $settings ) {
+    $settings['autoRefreshInterval'] = 30000; // 30 seconds
+    $settings['enabledSections'] = array( 'cart', 'totals' );
+    return $settings;
+}
+add_filter( 'fc_fragments_update_settings', 'add_fragments_settings', 10 );
+```
+
+#### `fc_update_fragments`
+**Description** Modifies the fragments (HTML sections) to be updated via AJAX.
+**Parameters**
+- `$fragments` (array) Associative array where keys are CSS selectors and values are the HTML content to replace. Defaults to empty array.
+**Context** Used in `inc/fragments-refresh.php` in the AJAX handler for updating fragments
+**Example**
+```php
+/**
+ * Add custom fragments to update
+ */
+function add_custom_fragments( $fragments ) {
+    ob_start();
+    // Output your custom HTML here
+    echo '<div class="custom-cart-info">' . WC()->cart->get_cart_contents_count() . ' items</div>';
+    $fragments['.custom-cart-info'] = ob_get_clean();
+    
+    return $fragments;
+}
+add_filter( 'fc_update_fragments', 'add_custom_fragments', 10 );
+```
 
 ### Settings and Admin
 
-- `fc_default_option_values` - Modifies default option values for settings
-- `fc_*_settings` - Modifies settings for specific sections
-- `fc_*_settings_add` - Adds additional settings for specific sections
-- `fc_show_settings_license_keys` - Controls whether to show license keys settings
-- `fc_admin_license_keys_group_exists` - Controls whether license keys group already exists
-- `fc_admin_field_type_license_exists` - Controls whether license field type already exists
-- `fc_admin_tab_fluidcheckout_exists` - Controls whether Fluid Checkout admin tab already exists
+#### `fc_default_option_values`
+**Description** Modifies default option values for Fluid Checkout settings.
+**Parameters**
+- `$defaults` (array) Associative array of default option values.
+**Context** Used in `inc/settings.php` in the `get_option_defaults()` method
+**Example**
+```php
+/**
+ * Set custom default values for settings
+ */
+function customize_default_settings( $defaults ) {
+    $defaults['fc_enable_checkout_place_order_sidebar'] = 'yes';
+    $defaults['fc_hide_optional_fields'] = 'yes';
+    return $defaults;
+}
+add_filter( 'fc_default_option_values', 'customize_default_settings', 10 );
+```
+
+#### `fc_{section}_settings`
+**Description** Modifies settings for specific admin settings sections. Replace `{section}` with the actual section name (e.g., `tools`, `license_keys`, `integrations`, `dashboard`).
+**Parameters**
+- `$settings` (array) Array of settings for the section.
+- `$current_section` (string) The current section identifier.
+**Context** Used in various admin settings files when building settings arrays
+**Example**
+```php
+/**
+ * Modify tools section settings
+ */
+function modify_tools_settings( $settings, $current_section ) {
+    // Add or modify settings
+    $settings[] = array(
+        'title' => __( 'Custom Tool', 'my-theme' ),
+        'type'  => 'fc_paragraph',
+        'desc'  => __( 'Description of custom tool', 'my-theme' ),
+        'id'    => 'fc_custom_tool',
+    );
+    return $settings;
+}
+add_filter( 'fc_tools_settings', 'modify_tools_settings', 10, 2 );
+```
+
+#### `fc_{section}_settings_add`
+**Description** Adds additional settings to specific admin settings sections. Replace `{section}` with the actual section name.
+**Parameters**
+- `$settings_add` (array) Array of additional settings to add. Defaults to empty array.
+**Context** Used in admin settings files for adding settings via filters
+**Example**
+```php
+/**
+ * Add settings to license keys section
+ */
+function add_license_key_settings( $settings_add ) {
+    $settings_add[] = array(
+        'title'    => __( 'My Plugin License', 'my-theme' ),
+        'desc'     => __( 'Enter your license key', 'my-theme' ),
+        'id'       => 'my_plugin_license_key',
+        'type'     => 'fc_license_key',
+        'autoload' => false,
+    );
+    return $settings_add;
+}
+add_filter( 'fc_license_keys_settings_add', 'add_license_key_settings', 10 );
+```
+
+#### `fc_show_settings_license_keys`
+**Description** Controls whether to show the license keys settings section.
+**Parameters**
+- `$show` (bool) Whether to show the license keys section. Defaults to `false`.
+**Context** Used in `inc/admin/admin-settings-license-keys.php` to conditionally display the section
+**Example**
+```php
+/**
+ * Show license keys section
+ */
+add_filter( 'fc_show_settings_license_keys', '__return_true', 10 );
+```
+
+#### `fc_admin_license_keys_group_exists`
+**Description** Controls whether the license keys settings group already exists (prevents duplicate registration).
+**Parameters**
+- `$exists` (bool) Whether the group exists. Defaults to `false`.
+**Context** Used in `inc/admin/admin-settings-license-keys.php` to check if group is already registered
+**Example**
+```php
+/**
+ * Mark license keys group as existing
+ */
+add_filter( 'fc_admin_license_keys_group_exists', '__return_true', 10 );
+```
+
+#### `fc_admin_field_type_license_exists`
+**Description** Controls whether the license field type already exists (prevents duplicate registration).
+**Parameters**
+- `$exists` (bool) Whether the field type exists. Defaults to `false`.
+**Context** Used in `inc/admin/admin.php` to check if license field type is already registered
+**Example**
+```php
+/**
+ * Mark license field type as existing
+ */
+add_filter( 'fc_admin_field_type_license_exists', '__return_true', 10 );
+```
+
+#### `fc_admin_tab_fluidcheckout_exists`
+**Description** Controls whether the Fluid Checkout admin tab already exists (prevents duplicate registration).
+**Parameters**
+- `$exists` (bool) Whether the admin tab exists. Defaults to `false`.
+**Context** Used in `inc/admin/admin.php` to check if admin tab is already registered
+**Example**
+```php
+/**
+ * Mark Fluid Checkout admin tab as existing
+ */
+add_filter( 'fc_admin_tab_fluidcheckout_exists', '__return_true', 10 );
+```
 
 ### Add Payment Method Page
 
-- `fc_wrapper_classes_add_payment_method_page` - Adds custom classes to add payment method page wrapper
-- `fc_add_payment_method_button_classes` - Adds custom classes to add payment method button
+#### `fc_wrapper_classes_add_payment_method_page`
+**Description** Adds custom CSS classes to the add payment method page wrapper element.
+**Parameters**
+- `$classes` (string) Additional CSS classes. Defaults to empty string.
+**Context** Used in `templates/fc/checkout-steps/myaccount/form-add-payment-method.php`
+**Example**
+```php
+/**
+ * Add custom classes to add payment method page
+ */
+function add_payment_method_page_classes( $classes ) {
+    $classes .= ' custom-payment-page branded-style';
+    return $classes;
+}
+add_filter( 'fc_wrapper_classes_add_payment_method_page', 'add_payment_method_page_classes', 10 );
+```
+
+#### `fc_add_payment_method_button_classes`
+**Description** Adds custom CSS classes to the add payment method submit button.
+**Parameters**
+- `$classes` (array) Array of CSS classes. Defaults to empty array.
+**Context** Used in `templates/fc/checkout-steps/myaccount/form-add-payment-method.php`
+**Example**
+```php
+/**
+ * Add custom classes to add payment method button
+ */
+function add_payment_button_classes( $classes ) {
+    $classes[] = 'custom-button';
+    $classes[] = 'primary-action';
+    return $classes;
+}
+add_filter( 'fc_add_payment_method_button_classes', 'add_payment_button_classes', 10 );
+```
