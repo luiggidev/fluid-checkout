@@ -2472,14 +2472,17 @@ add_filter( 'fc_save_new_address_data_shipping_skip_update', '__return_true', 10
 #### `fc_add_phone_localisation_formats`
 **Description** Controls whether to add phone number to address localization formats when displaying formatted addresses.
 **Parameters**
-- `$should_add` (string|bool) Whether to add phone to formatted addresses. Accepts 'yes'/'no' or true/false. Defaults to `'yes'`.
+- `$should_add` (string) Whether to add phone to formatted addresses. Accepts 'yes' or 'no'. Defaults to `'yes'`.
 **Context** Used in `inc/checkout-steps.php` when generating formatted addresses for display
 **Example**
 ```php
 /**
  * Disable phone number in formatted addresses
  */
-add_filter( 'fc_add_phone_localisation_formats', '__return_false', 10 );
+function fc_disable_phone_in_formatted_addresses( $should_add ) {
+	return 'no';
+}
+add_filter( 'fc_add_phone_localisation_formats', 'fc_disable_phone_in_formatted_addresses', 10 );
 ```
 
 #### `fc_formatted_address_replacements_custom_field_keys`
@@ -2523,7 +2526,7 @@ add_filter( 'fc_shipping_substep_text_address_data', 'customize_shipping_substep
 #### `fc_shipping_not_needed_shipping_field_keys`
 **Description** Defines the list of shipping field keys that should be copied from billing address when shipping is not needed.
 **Parameters**
-- `$field_keys` (array) Array of shipping field keys to copy from billing. Defaults to standard address fields (first_name, last_name, country, state, postcode, city, address_1, address_2).
+- `$field_keys` (array) Array of shipping field keys to copy from billing. Defaults to standard address fields with the `shipping_` prefix (shipping_first_name, shipping_last_name, shipping_country, shipping_state, shipping_postcode, shipping_city, shipping_address_1, shipping_address_2).
 **Context** Used in `inc/checkout-steps.php` when copying billing to shipping address for non-shipping orders
 **Example**
 ```php
@@ -3886,6 +3889,27 @@ add_filter( 'fc_substep_text_display_value_billing_email', 'customize_billing_em
 
 ### Order Details Page
 
+#### `fc_pro_order_details_customer_billing_address_formatted`
+**Description** Modifies the formatted billing address displayed in order details page and emails.
+**Parameters**
+- `$billing_address_formatted` (string) The formatted billing address HTML.
+- `$order` (WC_Order) The order object.
+**Context** Used in `templates/fc/checkout-steps/emails/email-addresses.php` and `templates/fc/checkout-steps/emails/plain/email-addresses.php` in Fluid Checkout
+**Example**
+```php
+/**
+ * Add custom text to billing address in order details
+ */
+function customize_order_details_billing_address( $billing_address_formatted, $order ) {
+    if ( $order->get_meta( '_priority_customer' ) ) {
+        $billing_address_formatted = '<span class="priority-badge">' . __( 'Priority Customer', 'my-theme' ) . '</span>' . $billing_address_formatted;
+    }
+    return $billing_address_formatted;
+}
+add_filter( 'fc_pro_order_details_customer_billing_address_formatted', 'customize_order_details_billing_address', 10, 2 );
+```
+
+
 #### `fc_pro_order_details_customer_shipping_address_formatted`
 **Description** Modifies the formatted shipping address displayed in order details page.
 **Parameters**
@@ -4006,21 +4030,13 @@ add_filter( 'fc_checkout_sidebar_attributes_inner', 'add_sidebar_inner_attribute
 **Example**
 ```php
 /**
- * Force enable dark mode based on time of day
+ * Enable dark mode
  */
-function enable_dark_mode_at_night( $enabled ) {
-    $hour = (int) current_time( 'H' );
-    // Enable dark mode between 6 PM and 6 AM
-    if ( $hour >= 18 || $hour < 6 ) {
-        return true;
-    }
-    return $enabled;
-}
-add_filter( 'fc_enable_dark_mode_styles', 'enable_dark_mode_at_night', 10 );
+add_filter( 'fc_enable_dark_mode_styles', '__return_true', 10 );
 ```
 
 #### `fc_apply_button_colors_styles`
-**Description** Controls whether custom button color styles are applied to the checkout page.
+**Description** Controls whether Fluid Checkout's button color styles are applied to the checkout page.
 **Parameters**
 - `$enabled` (bool) Whether button color styles are enabled. Defaults to `false`.
 **Context** Used in `inc/design-templates.php` in the `is_button_color_styles_enabled()` method
@@ -4033,7 +4049,8 @@ add_filter( 'fc_apply_button_colors_styles', '__return_true', 10 );
 ```
 
 #### `fc_apply_button_design_styles`
-**Description** Controls whether custom button design styles are applied to the checkout page.
+
+**Description** Controls whether Fluid Checkout's button design styles are applied to the checkout page.
 **Parameters**
 - `$enabled` (bool) Whether button design styles are enabled. Defaults to `false`.
 **Context** Used in `inc/design-templates.php` in the `is_button_design_styles_enabled()` method
@@ -4058,9 +4075,14 @@ add_filter( 'fc_apply_button_design_styles', '__return_true', 10 );
  */
 function add_custom_css_variables( $css_variables, $context ) {
     if ( 'frontend' === $context ) {
-        $css_variables[':root']['--fc-custom-color'] = '#ff6600';
-        $css_variables[':root']['--fc-custom-spacing'] = '2rem';
-        $css_variables['.fc-sidebar']['--sidebar-background'] = '#f5f5f5';
+        $new_css_variables = array(
+            ':root' => array(
+			'--fluidcheckout--button--primary--text-color' => "#ffffff",
+			'--fluidcheckout--button--height' => '50px',
+            )
+        );
+
+        return FluidCheckout_DesignTemplates::instance()->merge_css_variables( $css_variables, $new_css_variables );
     }
     return $css_variables;
 }
@@ -4174,7 +4196,6 @@ add_filter( 'fc_checkout_update_on_visibility_change', 'disable_update_on_visibi
  */
 function add_custom_update_field_selectors( $selectors ) {
     $selectors[] = '.custom-field input';
-    $selectors[] = '.custom-select select';
     return $selectors;
 }
 add_filter( 'fc_checkout_update_fields_selectors', 'add_custom_update_field_selectors', 10 );
@@ -4205,29 +4226,32 @@ add_filter( 'fc_enable_fragments_refresh', '__return_true', 10 );
 /**
  * Add custom fragments update settings
  */
-function add_fragments_settings( $settings ) {
-    $settings['autoRefreshInterval'] = 30000; // 30 seconds
-    $settings['enabledSections'] = array( 'cart', 'totals' );
+function add_custom_fragments_settings( $settings ) {
+    // Add custom settings
+    $settings['customSetting'] = 'custom-value';
+    
+    // Return modified settings
     return $settings;
 }
-add_filter( 'fc_fragments_update_settings', 'add_fragments_settings', 10 );
+add_filter( 'fc_fragments_update_settings', 'add_custom_fragments_settings', 10 );
 ```
 
 #### `fc_update_fragments`
-**Description** Modifies the fragments (HTML sections) to be updated via AJAX.
+**Description** Modifies the fragments (HTML sections) to be updated via AJAX on checkout and other pages where fragments refresh is enabled.
 **Parameters**
 - `$fragments` (array) Associative array where keys are CSS selectors and values are the HTML content to replace. Defaults to empty array.
 **Context** Used in `inc/fragments-refresh.php` in the AJAX handler for updating fragments
 **Example**
 ```php
 /**
- * Add custom fragments to update
+ * Add custom fragments to update via AJAX.
  */
 function add_custom_fragments( $fragments ) {
     ob_start();
-    // Output your custom HTML here
-    echo '<div class="custom-cart-info">' . WC()->cart->get_cart_contents_count() . ' items</div>';
-    $fragments['.custom-cart-info'] = ob_get_clean();
+    echo '<div class="custom-element">';
+    echo '<span>Cart items: ' . WC()->cart->get_cart_contents_count() . '</span>';
+    echo '</div>';
+    $fragments['.custom-element'] = ob_get_clean();
     
     return $fragments;
 }
@@ -4248,7 +4272,7 @@ add_filter( 'fc_update_fragments', 'add_custom_fragments', 10 );
  */
 function customize_default_settings( $defaults ) {
     $defaults['fc_enable_checkout_place_order_sidebar'] = 'yes';
-    $defaults['fc_hide_optional_fields'] = 'yes';
+
     return $defaults;
 }
 add_filter( 'fc_default_option_values', 'customize_default_settings', 10 );
@@ -4263,19 +4287,41 @@ add_filter( 'fc_default_option_values', 'customize_default_settings', 10 );
 **Example**
 ```php
 /**
- * Modify tools section settings
+ * Add custom tool to tools section
  */
-function modify_tools_settings( $settings, $current_section ) {
-    // Add or modify settings
+function add_custom_tool_setting( $settings, $current_section ) {
+    // Add custom tool setting
     $settings[] = array(
-        'title' => __( 'Custom Tool', 'my-theme' ),
-        'type'  => 'fc_paragraph',
-        'desc'  => __( 'Description of custom tool', 'my-theme' ),
-        'id'    => 'fc_custom_tool',
+					'title' => __( 'Custom title', 'fluid-checkout' ),
+					'type'  => 'title',
+					'desc'  => 'Custom Description',
+					'id'    => 'fc_checkout_advanced_debug_options',
     );
+
     return $settings;
 }
-add_filter( 'fc_tools_settings', 'modify_tools_settings', 10, 2 );
+add_filter( 'fc_tools_settings', 'add_custom_tool_setting', 10, 2 );
+
+/**
+ * Handle custom tool action
+ */
+function handle_custom_tool_action() {
+    if ( isset( $_POST['fc_clear_cache_tool'] ) && wp_verify_nonce( $_POST['_wpnonce'], 'fc_tools_settings-options' ) ) {
+        // Clear checkout steps cache
+        FluidCheckout_Steps::instance()->clear_checkout_steps_cache();
+        
+        // Clear other caches as needed
+        wp_cache_flush();
+        
+        // Add success notice
+        add_action( 'admin_notices', function() {
+            echo '<div class="notice notice-success is-dismissible"><p>' . 
+                 esc_html__( 'Cache cleared successfully!', 'my-theme' ) . 
+                 '</p></div>';
+        });
+    }
+}
+add_action( 'admin_init', 'handle_custom_tool_action' );
 ```
 
 #### `fc_{section}_settings_add`
@@ -4286,19 +4332,18 @@ add_filter( 'fc_tools_settings', 'modify_tools_settings', 10, 2 );
 **Example**
 ```php
 /**
- * Add settings to license keys section
+ * Add settings to tools section
  */
-function add_license_key_settings( $settings_add ) {
+function add_custom_tool_settings( $settings_add ) {
     $settings_add[] = array(
-        'title'    => __( 'My Plugin License', 'my-theme' ),
-        'desc'     => __( 'Enter your license key', 'my-theme' ),
-        'id'       => 'my_plugin_license_key',
-        'type'     => 'fc_license_key',
-        'autoload' => false,
+        'title' => __( 'Custom title', 'fluid-checkout' ),
+        'type'  => 'title',
+        'desc'  => 'Custom Description',
+        'id'    => 'fc_checkout_advanced_debug_options',
     );
     return $settings_add;
 }
-add_filter( 'fc_license_keys_settings_add', 'add_license_key_settings', 10 );
+add_filter( 'fc_tools_settings_add', 'add_custom_tool_settings', 10 );
 ```
 
 #### `fc_show_settings_license_keys`
@@ -4306,6 +4351,7 @@ add_filter( 'fc_license_keys_settings_add', 'add_license_key_settings', 10 );
 **Parameters**
 - `$show` (bool) Whether to show the license keys section. Defaults to `false`.
 **Context** Used in `inc/admin/admin-settings-license-keys.php` to conditionally display the section
+**Timing** This filter should be set early (priority 10-30) to ensure it's available when the license keys class loads (priority 50)
 **Example**
 ```php
 /**
@@ -4319,10 +4365,11 @@ add_filter( 'fc_show_settings_license_keys', '__return_true', 10 );
 **Parameters**
 - `$exists` (bool) Whether the group exists. Defaults to `false`.
 **Context** Used in `inc/admin/admin-settings-license-keys.php` to check if group is already registered
+**Note** This filter is managed internally by the license keys class. External plugins should not modify this filter.
 **Example**
 ```php
 /**
- * Mark license keys group as existing
+ * Mark license keys group as existing (internal use only)
  */
 add_filter( 'fc_admin_license_keys_group_exists', '__return_true', 10 );
 ```
