@@ -409,137 +409,137 @@ add_filter( 'fc_enable_compat_plugin_edit_address_style_woocommerce-subscription
 #### Payment Gateway Compatibility
 
 #### `fc_compat_dibs_easy_skip_undo_hooks_classes`
-**Description** Defines CSS classes to skip when undoing hooks for DIBS Easy payment gateway compatibility.
+**Description** Defines PHP feature class names to skip when undoing hooks for DIBS Easy payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-dibs-easy-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip when undoing DIBS Easy hooks
+ * Add custom feature classes to skip when undoing DIBS Easy hooks
  */
 function add_dibs_easy_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'custom-dibs-class';
-    $skip_classes[] = 'another-custom-class';
+    $skip_classes[] = 'FluidCheckout_CustomFeature';
+    $skip_classes[] = 'FluidCheckout_AnotherFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_dibs_easy_skip_undo_hooks_classes', 'add_dibs_easy_skip_classes', 10 );
 ```
 
 #### `fc_compat_dibs_easy_skip_undo_hooks_early_classes`
-**Description** Defines CSS classes to skip early when undoing hooks for DIBS Easy payment gateway compatibility.
+**Description** Defines PHP feature class names to skip early when undoing hooks for DIBS Easy payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip early when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip early when undoing hooks. Defaults to `array( 'FluidCheckout_CheckoutWidgetAreas' )`.
 **Context** Used in `inc/compat/plugins/compat-plugin-dibs-easy-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip early when undoing DIBS Easy hooks
+ * Add custom feature classes to skip early when undoing DIBS Easy hooks
  */
 function add_dibs_easy_early_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'early-dibs-class';
+    $skip_classes[] = 'FluidCheckout_EarlyFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_dibs_easy_skip_undo_hooks_early_classes', 'add_dibs_easy_early_skip_classes', 10 );
 ```
 
 #### `fc_compat_dintero_checkout_skip_undo_hooks_classes`
-**Description** Defines CSS classes to skip when undoing hooks for Dintero Checkout payment gateway compatibility.
+**Description** Defines PHP feature class names to skip when undoing hooks for Dintero Checkout payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-dintero-checkout-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip when undoing Dintero Checkout hooks
+ * Add custom feature classes to skip when undoing Dintero Checkout hooks
  */
 function add_dintero_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'custom-dintero-class';
+    $skip_classes[] = 'FluidCheckout_CustomFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_dintero_checkout_skip_undo_hooks_classes', 'add_dintero_skip_classes', 10 );
 ```
 
 #### `fc_compat_dintero_checkout_skip_undo_hooks_early_classes`
-**Description** Defines CSS classes to skip early when undoing hooks for Dintero Checkout payment gateway compatibility.
+**Description** Defines PHP feature class names to skip early when undoing hooks for Dintero Checkout payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip early when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip early when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-dintero-checkout-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip early when undoing Dintero Checkout hooks
+ * Add custom feature classes to skip early when undoing Dintero Checkout hooks
  */
 function add_dintero_early_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'early-dintero-class';
+    $skip_classes[] = 'FluidCheckout_EarlyFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_dintero_checkout_skip_undo_hooks_early_classes', 'add_dintero_early_skip_classes', 10 );
 ```
 
 #### `fc_compat_klarna_checkout_skip_undo_hooks_classes`
-**Description** Defines CSS classes to skip when undoing hooks for Klarna Checkout payment gateway compatibility.
+**Description** Defines PHP feature class names to skip when undoing hooks for Klarna Checkout payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-klarna-checkout-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip when undoing Klarna Checkout hooks
+ * Add custom feature classes to skip when undoing Klarna Checkout hooks
  */
 function add_klarna_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'custom-klarna-class';
+    $skip_classes[] = 'FluidCheckout_CustomFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_klarna_checkout_skip_undo_hooks_classes', 'add_klarna_skip_classes', 10 );
 ```
 
 #### `fc_compat_klarna_checkout_skip_undo_hooks_early_classes`
-**Description** Defines CSS classes to skip early when undoing hooks for Klarna Checkout payment gateway compatibility.
+**Description** Defines PHP feature class names to skip early when undoing hooks for Klarna Checkout payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip early when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip early when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-klarna-checkout-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip early when undoing Klarna Checkout hooks
+ * Add custom feature classes to skip early when undoing Klarna Checkout hooks
  */
 function add_klarna_early_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'early-klarna-class';
+    $skip_classes[] = 'FluidCheckout_EarlyFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_klarna_checkout_skip_undo_hooks_early_classes', 'add_klarna_early_skip_classes', 10 );
 ```
 
 #### `fc_compat_payson_checkout_skip_undo_hooks_classes`
-**Description** Defines CSS classes to skip when undoing hooks for Payson Checkout payment gateway compatibility.
+**Description** Defines PHP feature class names to skip when undoing hooks for Payson Checkout payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-krokedil-paysoncheckout-20-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip when undoing Payson Checkout hooks
+ * Add custom feature classes to skip when undoing Payson Checkout hooks
  */
 function add_payson_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'custom-payson-class';
+    $skip_classes[] = 'FluidCheckout_CustomFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_payson_checkout_skip_undo_hooks_classes', 'add_payson_skip_classes', 10 );
 ```
 
 #### `fc_compat_payson_checkout_skip_undo_hooks_early_classes`
-**Description** Defines CSS classes to skip early when undoing hooks for Payson Checkout payment gateway compatibility.
+**Description** Defines PHP feature class names to skip early when undoing hooks for Payson Checkout payment gateway compatibility.
 **Parameters**
-- `$skip_classes` (array) Array of CSS classes to skip early when undoing hooks. Defaults to `array()`.
+- `$skip_classes` (array) Array of PHP class names to skip early when undoing hooks. Defaults to `array()`.
 **Context** Used in `inc/compat/plugins/compat-plugin-krokedil-paysoncheckout-20-for-woocommerce.php`
 **Example**
 ```php
 /**
- * Add custom classes to skip early when undoing Payson Checkout hooks
+ * Add custom feature classes to skip early when undoing Payson Checkout hooks
  */
 function add_payson_early_skip_classes( $skip_classes ) {
-    $skip_classes[] = 'early-payson-class';
+    $skip_classes[] = 'FluidCheckout_EarlyFeature';
     return $skip_classes;
 }
 add_filter( 'fc_compat_payson_checkout_skip_undo_hooks_early_classes', 'add_payson_early_skip_classes', 10 );
@@ -575,14 +575,17 @@ add_filter( 'fc_compat_wcbcf_disable_marked_input_phone_feature', '__return_true
 #### `fc_integration_woo_checkout_field_editor_pro_enable_edit_address_changes`
 **Description** Controls whether to enable edit address changes for WooCommerce Checkout Field Editor Pro integration.
 **Parameters**
-- `$enable` (bool) Whether to enable edit address changes. Defaults to `true`.
+- `$enable` (string) Whether to enable edit address changes. Defaults to `'yes'`.
 **Context** Used in WooCommerce Checkout Field Editor Pro integration
 **Example**
 ```php
 /**
  * Disable edit address changes for WC Checkout Field Editor Pro
  */
-add_filter( 'fc_integration_woo_checkout_field_editor_pro_enable_edit_address_changes', '__return_false', 10 );
+function fc_disable_checkout_field_editor_pro_edit_address_changes( $enable ) {
+	return 'no';
+}
+add_filter( 'fc_integration_woo_checkout_field_editor_pro_enable_edit_address_changes', 'fc_disable_checkout_field_editor_pro_edit_address_changes', 10 );
 ```
 
 #### `fc_pro_override_template_with_theme_file`
@@ -2425,20 +2428,22 @@ add_filter( 'fc_is_substep_complete_shipping_method', 'custom_shipping_method_co
 ```
 
 #### `fc_is_shipping_address_data_same_as_billing_before`
-**Description** Allows intercepting the comparison between shipping and billing address data before the default comparison.
+**Description** Allows intercepting the comparison between shipping and billing address data before the default comparison logic runs.
 **Parameters**
-- `$is_same` (bool|null) Whether addresses are the same. Return `null` to use default comparison.
-**Context** Used in `inc/checkout-fields.php` when comparing address data
+- `$value` (bool|null) Initial value is `null`. Return `true` if addresses should be considered the same, `false` if different, or `null` to use default comparison.
+**Context** Used in `inc/checkout-steps.php` in the `is_shipping_address_data_same_as_billing()` method
 **Example**
 ```php
 /**
- * Custom address comparison logic
+ * Force shipping and billing addresses to always be considered different
+ * This will prevent the "Same as billing" checkbox from being checked automatically
  */
-function custom_address_comparison( $is_same ) {
-    // Custom comparison logic - return true/false or null for default comparison
-    return null; // Use default comparison
+function fc_force_addresses_always_different( $value ) {
+    // Return false to always consider addresses as different
+    // This is useful for testing or when you want to force separate address entry
+    return false;
 }
-add_filter( 'fc_is_shipping_address_data_same_as_billing_before', 'custom_address_comparison', 10, 1 );
+add_filter( 'fc_is_shipping_address_data_same_as_billing_before', 'fc_force_addresses_always_different', 10, 1 );
 ```
 
 #### `fc_is_shipping_same_as_billing_checked`
