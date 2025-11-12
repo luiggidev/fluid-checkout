@@ -3327,6 +3327,22 @@ function customize_substep_change_button_label( $label ) {
 add_filter( 'fc_substep_change_button_label', 'customize_substep_change_button_label', 10 );
 ```
 
+#### `fc_substep_title_{substep_id}`
+**Description** Modifies the title for an individual checkout substep. Replace `{substep_id}` with an existing substep ID such as `order_notes`.
+**Parameters**
+- `$substep_title` (string) The substep title text.
+**Context** Used in `inc/checkout-steps.php` when resolving the title for each registered substep
+**Example**
+```php
+/**
+ * Rename the "Additional notes" substep heading
+ */
+function rename_additional_notes_substep_title( $substep_title ) {
+    return __( 'Delivery instructions', 'my-theme' );
+}
+add_filter( 'fc_substep_title_order_notes', 'rename_additional_notes_substep_title', 10 );
+```
+
 #### `fc_substep_save_button_classes`
 **Description** Adds custom CSS classes to the substep save button.
 **Parameters**
