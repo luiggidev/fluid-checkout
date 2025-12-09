@@ -10,7 +10,13 @@ class FluidCheckout_WooCommerceGermanizedPRO extends FluidCheckout {
 	 * __construct function.
 	 */
 	public function __construct() {
-		$this->hooks();
+		if ( did_action( 'woocommerce_gzdp_loaded' ) ) {
+			// Germanized PRO already initialized, run compat hooks immediately.
+			$this->hooks();
+		} else {
+			// Wait until Germanized PRO signals it's loaded before interacting with its classes.
+			add_action( 'woocommerce_gzdp_loaded', array( $this, 'hooks' ) );
+		}
 	}
 
 
