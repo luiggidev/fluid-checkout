@@ -58,10 +58,25 @@ body.woocommerce-add-payment-method div.woocommerce #add_payment_method .fc-wrap
   padding: 0;
   display: block;
   width: 100%;
-  border: var(--fluidcheckout--option-box--border-style, solid) var(--fluidcheckout--option-box--border-width, 1px) var(--fluidcheckout--option-box--border-color, var(--fluidcheckout--border-color, var(--fluidcheckout--color--light-grey, #d8d8d8))) !important;
-  border-radius: var(--fluidcheckout--option-box--border-radius, 13px);
   background-color: transparent !important;
   overflow: visible;
+}
+
+body.woocommerce-add-payment-method .fc-wrapper #payment ul.payment_methods li.wc_payment_method {
+  border-left: var(--fluidcheckout--option-box--border-style, solid) var(--fluidcheckout--option-box--border-width, 1px) var(--fluidcheckout--option-box--border-color, var(--fluidcheckout--border-color, var(--fluidcheckout--color--light-grey, #d8d8d8))) !important;
+  border-right: var(--fluidcheckout--option-box--border-style, solid) var(--fluidcheckout--option-box--border-width, 1px) var(--fluidcheckout--option-box--border-color, var(--fluidcheckout--border-color, var(--fluidcheckout--color--light-grey, #d8d8d8))) !important;
+}
+
+body.woocommerce-add-payment-method .fc-wrapper #payment ul.payment_methods li.wc_payment_method:not([style*="display: none"]):first-of-type {
+  border-top-left-radius: var(--fluidcheckout--option-box--border-radius, 13px);
+  border-top-right-radius: var(--fluidcheckout--option-box--border-radius, 13px);
+  border-top: var(--fluidcheckout--option-box--border-style, solid) var(--fluidcheckout--option-box--border-width, 1px) var(--fluidcheckout--option-box--border-color, var(--fluidcheckout--border-color, var(--fluidcheckout--color--light-grey, #d8d8d8)));
+}
+
+body.woocommerce-add-payment-method .fc-wrapper #payment ul.payment_methods li.wc_payment_method:not([style*="display: none"]):last-of-type {
+  border-bottom-left-radius: var(--fluidcheckout--option-box--border-radius, 13px);
+  border-bottom-right-radius: var(--fluidcheckout--option-box--border-radius, 13px);
+  border-bottom: var(--fluidcheckout--option-box--border-style, solid) var(--fluidcheckout--option-box--border-width, 1px) var(--fluidcheckout--option-box--border-color, var(--fluidcheckout--border-color, var(--fluidcheckout--color--light-grey, #d8d8d8)));
 }
 
 .fc-wrapper #payment .payment_methods > .wc_payment_method,

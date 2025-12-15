@@ -25,12 +25,28 @@ body#{ $_body-page-selector } div.woocommerce #add_payment_method .fc-wrapper #p
 	padding: 0;
 	display: block;
 	width: 100%;
-	border: $option-box-border !important; // Needed to override theme styles
-	border-radius: $option-box-border-radius;
 	background-color: transparent !important; // Needed to override theme styles
 	overflow: visible;
 }
 
+body#{ $_body-page-selector } .fc-wrapper #payment ul.payment_methods li.wc_payment_method {
+	border-left: $option-box-border !important; // Needed to override theme styles
+	border-right: $option-box-border !important; // Needed to override theme styles
+
+}
+
+body#{ $_body-page-selector } .fc-wrapper #payment ul.payment_methods li.wc_payment_method:not([style*="display: none"]):first-of-type {
+	border-top-left-radius: $option-box-border-radius;
+	border-top-right-radius: $option-box-border-radius;
+	border-top: $option-box-border;
+}
+
+body#{ $_body-page-selector } .fc-wrapper #payment ul.payment_methods li.wc_payment_method:not([style*="display: none"]):last-of-type {
+
+	border-bottom-left-radius: $option-box-border-radius;
+	border-bottom-right-radius: $option-box-border-radius;
+	border-bottom: $option-box-border;
+}
 
 
 .fc-wrapper #payment .payment_methods > .wc_payment_method,
