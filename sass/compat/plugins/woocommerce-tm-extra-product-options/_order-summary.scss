@@ -49,3 +49,12 @@ div.woocommerce .fc-wrapper #order_review table.woocommerce-checkout-review-orde
 	display: inline-block;
 	padding-top: $global-spacing-tiny;
 }
+
+
+
+// EPO outputs placeholder dt/dd elements with this class for options without labels.
+.fc-wrapper dl.variation .tc-hidden-variation,
+.fc-wrapper .cart-item__meta dl.variation dt.tc-hidden-variation,
+.fc-wrapper .cart-item__meta dl.variation dd.tc-hidden-variation {
+	display: none;
+}
