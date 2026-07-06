@@ -53,6 +53,7 @@ div.woocommerce .fc-wrapper #order_review table.woocommerce-checkout-review-orde
 
 
 // EPO outputs placeholder dt/dd elements with this class for options without labels.
+// The cart-item__meta selectors are more specific to override order-summary and theme styles.
 .fc-wrapper dl.variation .tc-hidden-variation,
 .fc-wrapper .cart-item__meta dl.variation dt.tc-hidden-variation,
 .fc-wrapper .cart-item__meta dl.variation dd.tc-hidden-variation {
