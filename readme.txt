@@ -356,6 +356,7 @@ The plugin provides widget areas in strategic positions on the checkout page for
 
 = Unreleased =
 
+* Fixed: Compatibility with plugin Extra Product Options & Add-Ons for WooCommerce. Fixed issues with Advanced Display mode causing issues with quantity updates.
 * Added: Conditional visibility for checkout steps based on available substeps.
 * Improved: Exclude development files from installable zip packages for this plugin.
 * Improved: Display checked checkbox in substep review text as "yes", instead of showing the actual checkbox value.
