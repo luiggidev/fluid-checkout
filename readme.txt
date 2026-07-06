@@ -366,7 +366,7 @@ The plugin provides widget areas in strategic positions on the checkout page for
 * Fixed: Compatibility with plugin Advanced Coupons for WooCommerce Free. Fix positioning for coupon section.
 * Fixed: Phone fields showing as "optional" at checkout and account edit address, even though it is set as required in the settings.
 * Fixed: Missing styles for the WooCommerce show password button at checkout. Also fixed the button getting duplicated after checkout updates.
-* Fixed: Compatibility with plugin Extra Product Options & Add-Ons for WooCommerce. Fixed issues with Advanced Display mode causing issues with quantity updates.
+* Fixed: Compatibility with plugin Extra Product Options & Add-Ons for WooCommerce. Hide placeholder option meta elements in the order summary when options have no label.
 
 = 4.2.4 - 2026-06-02 =
 
