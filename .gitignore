@@ -41,6 +41,11 @@ vendor-dev
 # PHPUnit
 .phpunit.result.cache
 
+# Playwright e2e
+e2e.config.local.json
+playwright-report/
+test-results/
+
 # Local symlink to shared standards repo (see README-DEV.md)
 fluid-checkout-standards
 
