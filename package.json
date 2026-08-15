@@ -11,6 +11,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:e2e:smoke": "playwright test --grep @smoke",
     "test:e2e:seed": "bash fluid-checkout-standards/playwright/scripts/seed-e2e-site.sh ."
   },
   "repository": {},
