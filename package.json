@@ -9,10 +9,10 @@
     "start": "wp-scripts start --webpack-src-dir=blocks",
     "build": "wp-scripts build --webpack-src-dir=blocks",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui",
-    "test:e2e:smoke": "playwright test --grep @smoke",
-    "test:e2e:seed": "bash fluid-checkout-standards/playwright/scripts/seed-e2e-site.sh ."
+    "test:e2e": "npm --prefix ../fluid-checkout-standards run test:e2e --",
+    "test:e2e:ui": "npm --prefix ../fluid-checkout-standards run test:e2e:ui --",
+    "test:e2e:smoke": "npm --prefix ../fluid-checkout-standards run test:e2e:smoke --",
+    "test:e2e:seed": "npm --prefix ../fluid-checkout-standards run test:e2e:seed --"
   },
   "repository": {},
   "author": "Fluid Checkout",
