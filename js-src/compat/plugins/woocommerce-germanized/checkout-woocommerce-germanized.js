@@ -92,7 +92,10 @@
 	 */
 	var maybeAddFieldNotice = function() {
 		// Bail if plugin object is not available
-		if ( ! isPickupLocationsAvailable() || 'undefined' === typeof window.shiptastic.shipments_pickup_locations.params ) { return; }
+		if ( ! isPickupLocationsAvailable() ) { return; }
+
+		// Bail if plugin params are not available
+		if ( 'undefined' === typeof window.shiptastic.shipments_pickup_locations.params ) { return; }
 
 		// Bail if notice element from the plugin is not available
 		if ( 'undefined' === typeof window.shiptastic.shipments_pickup_locations.params.i18n_managed_by_pickup_location ) { return; }
