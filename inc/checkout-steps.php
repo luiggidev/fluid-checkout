@@ -132,7 +132,6 @@ class FluidCheckout_Steps extends FluidCheckout {
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'add_shipping_address_fields_fragment' ), 10 );
 		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'add_shipping_address_text_fragment' ), 10 );
 		add_action( 'fc_checkout_after_step_shipping_fields_inside', array( $this, 'maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_not_needed' ), 5 );
-		add_action( 'fc_checkout_after_step_shipping_fields_inside', array( $this, 'maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_needed' ), 20 );
 
 		// Shipping method
 		add_filter( 'fc_substep_shipping_method_text_lines', array( $this, 'add_substep_text_lines_shipping_method' ), 10 );
@@ -524,7 +523,6 @@ class FluidCheckout_Steps extends FluidCheckout {
 		remove_filter( 'woocommerce_update_order_review_fragments', array( $this, 'add_shipping_address_fields_fragment' ), 10 );
 		remove_filter( 'woocommerce_update_order_review_fragments', array( $this, 'add_shipping_address_text_fragment' ), 10 );
 		remove_action( 'fc_checkout_after_step_shipping_fields_inside', array( $this, 'maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_not_needed' ), 5 );
-		remove_action( 'fc_checkout_after_step_shipping_fields_inside', array( $this, 'maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_needed' ), 20 );
 
 		// Shipping method
 		remove_filter( 'fc_substep_shipping_method_text_lines', array( $this, 'add_substep_text_lines_shipping_method' ), 10 );
@@ -3949,6 +3947,13 @@ class FluidCheckout_Steps extends FluidCheckout {
 	 */
 	public function add_shipping_address_fields_fragment( $fragments ) {
 		$html = $this->get_substep_shipping_address_fields();
+
+		// Maybe restore shipping address visibility after a virtual-only cart transition when no compat plugin output a field
+		$visibility = $this->get_shipping_step_substep_visibility();
+		if ( 'yes' === $visibility['shipping_address'] && false === strpos( $html, 'fc-substep-visible-state' ) ) {
+			$html .= '<input class="fc-substep-visible-state" type="hidden" value="yes" />';
+		}
+
 		$fragments['.woocommerce-shipping-fields'] = $html;
 		return $fragments;
 	}
@@ -4815,19 +4820,6 @@ class FluidCheckout_Steps extends FluidCheckout {
 		if ( 'no' !== $visibility['shipping_address'] ) { return; }
 
 		echo '<input class="fc-substep-visible-state" type="hidden" value="no" />';
-	}
-
-	/**
-	 * Maybe output substep visible state hidden field for shipping address when shipping is needed.
-	 *
-	 * Runs after other plugins at priority `10` to restore visibility when no other plugin outputs a hidden field.
-	 */
-	public function maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_needed() {
-		// Bail if the shipping address substep should stay hidden
-		$visibility = $this->get_shipping_step_substep_visibility();
-		if ( 'yes' !== $visibility['shipping_address'] ) { return; }
-
-		echo '<input class="fc-substep-visible-state" type="hidden" value="yes" />';
 	}
 
 	/**

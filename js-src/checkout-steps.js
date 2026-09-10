@@ -867,19 +867,23 @@
 			}
 
 			// Handle visibility state
-			var visibilityHiddenField = substepElement.querySelector( _settings.substepVisibleStateFieldSelector );
-			if ( visibilityHiddenField ) {
+			var visibilityHiddenFields = substepElement.querySelectorAll( _settings.substepVisibleStateFieldSelector );
+			if ( visibilityHiddenFields.length > 0 ) {
+				var visibilityValue = visibilityHiddenFields[ 0 ].value;
+
 				// Change visibility state
-				substepElement.setAttribute( _settings.substepVisibleStateAttribute, visibilityHiddenField.value );
+				substepElement.setAttribute( _settings.substepVisibleStateAttribute, visibilityValue );
 
 				// Maybe collapse substep edit
 				// when substep is already hidden, set as complete and set as expanded
-				if ( 'no' === visibilityHiddenField.value && ! isSetExpanded && isStepComplete( substepElement ) ) {
+				if ( 'no' === visibilityValue && ! isSetExpanded && isStepComplete( substepElement ) ) {
 					collapseSubstepEdit( substepElement, true, false );
 				}
 
-				// Remove visibility state hidden field, to avoid it being used again
-				visibilityHiddenField.parentNode.removeChild( visibilityHiddenField );
+				// Remove all visibility state hidden fields, to avoid stale fields being used again
+				for ( var j = 0; j < visibilityHiddenFields.length; j++ ) {
+					visibilityHiddenFields[ j ].parentNode.removeChild( visibilityHiddenFields[ j ] );
+				}
 			}
 		}
 	}
