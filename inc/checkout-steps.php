@@ -4583,13 +4583,6 @@ class FluidCheckout_Steps extends FluidCheckout {
 	public function add_order_notes_text_fragment( $fragments ) {
 		$html = $this->get_substep_text_order_notes();
 		$fragments['.fc-step__substep-text-content--order_notes'] = $html;
-
-		// Maybe hide order notes substep on the shipping step based on computed visibility
-		$visibility = $this->get_shipping_step_substep_visibility();
-		if ( 'no' === $visibility['order_notes'] ) {
-			$fragments['.fc-step[data-step-id="shipping"] .fc-step__substep-text-content--order_notes'] = $html . '<input class="fc-substep-visible-state" type="hidden" value="no" />';
-		}
-
 		return $fragments;
 	}
 
@@ -4791,20 +4784,20 @@ class FluidCheckout_Steps extends FluidCheckout {
 		$visibility = array(
 			'shipping_address' => 'yes',
 			'shipping_method'  => 'yes',
-			'order_notes'      => 'yes',
 		);
 
 		// Bail with default visibility when shipping is still needed
 		if ( ! WC()->cart || WC()->cart->needs_shipping() ) { return $visibility; }
 
-		// Shipping is not needed: hide the shipping method and order notes substeps
+		// Shipping is not needed: hide the shipping method substep
 		$visibility['shipping_method'] = 'no';
-		$visibility['order_notes']     = 'no';
 
 		// Keep the shipping address substep visible only when the billing address is forced into it,
 		// because billing fields are still rendered there until the checkout page is reloaded.
 		$is_billing_forced_into_shipping_address = 'force_single_address' === FluidCheckout_Settings::instance()->get_option( 'fc_pro_checkout_billing_address_position' );
 		$visibility['shipping_address'] = $is_billing_forced_into_shipping_address ? 'yes' : 'no';
+
+		// Order notes stay on the shipping step during AJAX updates. They are not part of this visibility map.
 
 		return $visibility;
 	}
@@ -4812,7 +4805,7 @@ class FluidCheckout_Steps extends FluidCheckout {
 	/**
 	 * Maybe output substep visible state hidden field for shipping address when shipping is not needed.
 	 *
-	 * Runs before other plugins at priority `10` so the hidden field is read first by the checkout script.
+	 * Runs at priority `5`, before compat plugins at priority `10`.
 	 */
 	public function maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_not_needed() {
 		// Bail if the shipping address substep should stay visible

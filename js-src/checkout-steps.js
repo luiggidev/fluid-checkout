@@ -869,7 +869,14 @@
 			// Handle visibility state
 			var visibilityHiddenFields = substepElement.querySelectorAll( _settings.substepVisibleStateFieldSelector );
 			if ( visibilityHiddenFields.length > 0 ) {
-				var visibilityValue = visibilityHiddenFields[ 0 ].value;
+				// When multiple compat plugins output visibility fields, hide the substep if any of them require it
+				var visibilityValue = 'yes';
+				for ( var j = 0; j < visibilityHiddenFields.length; j++ ) {
+					if ( 'no' === visibilityHiddenFields[ j ].value ) {
+						visibilityValue = 'no';
+						break;
+					}
+				}
 
 				// Change visibility state
 				substepElement.setAttribute( _settings.substepVisibleStateAttribute, visibilityValue );
@@ -881,8 +888,8 @@
 				}
 
 				// Remove all visibility state hidden fields, to avoid stale fields being used again
-				for ( var j = 0; j < visibilityHiddenFields.length; j++ ) {
-					visibilityHiddenFields[ j ].parentNode.removeChild( visibilityHiddenFields[ j ] );
+				for ( var k = 0; k < visibilityHiddenFields.length; k++ ) {
+					visibilityHiddenFields[ k ].parentNode.removeChild( visibilityHiddenFields[ k ] );
 				}
 			}
 		}
