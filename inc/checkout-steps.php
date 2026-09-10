@@ -4579,8 +4579,9 @@ class FluidCheckout_Steps extends FluidCheckout {
 		$html = $this->get_substep_text_order_notes();
 		$fragments['.fc-step__substep-text-content--order_notes'] = $html;
 
-		// Maybe hide order notes substep on the shipping step when shipping is not needed
-		if ( ! WC()->cart->needs_shipping() ) {
+		// Maybe hide order notes substep on the shipping step based on computed visibility
+		$visibility = $this->get_shipping_step_substep_visibility();
+		if ( 'no' === $visibility['order_notes'] ) {
 			$fragments['.fc-step[data-step-id="shipping"] .fc-step__substep-text-content--order_notes'] = $html . '<input class="fc-substep-visible-state" type="hidden" value="no" />';
 		}
 
@@ -4773,17 +4774,34 @@ class FluidCheckout_Steps extends FluidCheckout {
 
 
 	/**
-	 * Whether the shipping address substep should stay visible when the cart no longer needs shipping.
+	 * Get the visibility state for each substep of the shipping step based on the current cart and settings.
 	 *
-	 * @return  bool  `true` when the shipping address substep should remain visible.
+	 * This is the single source of truth used to keep the AJAX-updated checkout in sync with the state
+	 * produced on a full page reload when the cart no longer needs shipping (for example, a virtual-only cart).
+	 *
+	 * @return  array  Associative array of `substep_id => 'yes'|'no'` visibility values.
 	 */
-	public function should_keep_shipping_address_substep_visible_when_shipping_not_needed() {
-		// Bail if shipping is still needed
-		if ( ! WC()->cart || WC()->cart->needs_shipping() ) { return false; }
+	public function get_shipping_step_substep_visibility() {
+		// Define default visibility, all shipping substeps visible
+		$visibility = array(
+			'shipping_address' => 'yes',
+			'shipping_method'  => 'yes',
+			'order_notes'      => 'yes',
+		);
 
-		// Keep visible when billing address is forced into the shipping address substep,
+		// Bail with default visibility when shipping is still needed
+		if ( ! WC()->cart || WC()->cart->needs_shipping() ) { return $visibility; }
+
+		// Shipping is not needed: hide the shipping method and order notes substeps
+		$visibility['shipping_method'] = 'no';
+		$visibility['order_notes']     = 'no';
+
+		// Keep the shipping address substep visible only when the billing address is forced into it,
 		// because billing fields are still rendered there until the checkout page is reloaded.
-		return 'force_single_address' === FluidCheckout_Settings::instance()->get_option( 'fc_pro_checkout_billing_address_position' );
+		$is_billing_forced_into_shipping_address = 'force_single_address' === FluidCheckout_Settings::instance()->get_option( 'fc_pro_checkout_billing_address_position' );
+		$visibility['shipping_address'] = $is_billing_forced_into_shipping_address ? 'yes' : 'no';
+
+		return $visibility;
 	}
 
 	/**
@@ -4792,11 +4810,9 @@ class FluidCheckout_Steps extends FluidCheckout {
 	 * Runs before other plugins at priority `10` so the hidden field is read first by the checkout script.
 	 */
 	public function maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_not_needed() {
-		// Bail if shipping is still needed
-		if ( ! WC()->cart || WC()->cart->needs_shipping() ) { return; }
-
-		// Bail if shipping address substep needs to stay visible
-		if ( $this->should_keep_shipping_address_substep_visible_when_shipping_not_needed() ) { return; }
+		// Bail if the shipping address substep should stay visible
+		$visibility = $this->get_shipping_step_substep_visibility();
+		if ( 'no' !== $visibility['shipping_address'] ) { return; }
 
 		echo '<input class="fc-substep-visible-state" type="hidden" value="no" />';
 	}
@@ -4807,8 +4823,9 @@ class FluidCheckout_Steps extends FluidCheckout {
 	 * Runs after other plugins at priority `10` to restore visibility when no other plugin outputs a hidden field.
 	 */
 	public function maybe_output_substep_visible_state_hidden_field_shipping_address_when_shipping_needed() {
-		// Bail if shipping is not needed and shipping address substep should stay hidden
-		if ( ! WC()->cart || ( ! WC()->cart->needs_shipping() && ! $this->should_keep_shipping_address_substep_visible_when_shipping_not_needed() ) ) { return; }
+		// Bail if the shipping address substep should stay hidden
+		$visibility = $this->get_shipping_step_substep_visibility();
+		if ( 'yes' !== $visibility['shipping_address'] ) { return; }
 
 		echo '<input class="fc-substep-visible-state" type="hidden" value="yes" />';
 	}
@@ -4817,8 +4834,9 @@ class FluidCheckout_Steps extends FluidCheckout {
 	 * Output substep state hidden fields for shipping methods.
 	 */
 	public function output_substep_state_hidden_fields_shipping_methods() {
-		// Maybe hide shipping method substep when shipping is not needed
-		if ( ! WC()->cart || ! WC()->cart->needs_shipping() ) {
+		// Maybe hide shipping method substep based on computed visibility
+		$visibility = $this->get_shipping_step_substep_visibility();
+		if ( 'no' === $visibility['shipping_method'] ) {
 			echo '<input class="fc-substep-visible-state" type="hidden" value="no" />';
 			return;
 		}
