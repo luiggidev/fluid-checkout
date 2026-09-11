@@ -1822,6 +1822,40 @@ class FluidCheckout_Steps extends FluidCheckout {
 		return $has_visible_substeps;
 	}
 
+	/**
+	 * Get the ids of substeps that will be output for a checkout step.
+	 *
+	 * @param   string  $step_id   Id of the checkout step.
+	 * @param   string  $context   Context in which the function is running. Defaults to `checkout`.
+	 *
+	 * @return  array               List of visible substep ids in render order.
+	 */
+	public function get_visible_substep_ids_for_output( $step_id, $context = 'checkout' ) {
+		// Get substeps for this step
+		$substeps = $this->get_checkout_substeps( $step_id, $context );
+
+		// Bail if no substeps are registered
+		if ( ! is_array( $substeps ) || count( $substeps ) < 1 ) { return array(); }
+
+		// Initialize variables
+		$visible_substep_ids = array();
+
+		// Iterate substeps
+		foreach ( $substeps as $substep_args ) {
+			// Skip if render fields callback is not callable
+			$render_fields_callback = array_key_exists( 'render_fields_callback', $substep_args ) ? $substep_args[ 'render_fields_callback' ] : null;
+			if ( ! $render_fields_callback || ! is_callable( $render_fields_callback ) ) { continue; }
+
+			// Skip if substep is not visible
+			if ( ! $this->is_substep_visible( $substep_args, $context ) ) { continue; }
+
+			// Add substep id to the list
+			$visible_substep_ids[] = $substep_args[ 'substep_id' ];
+		}
+
+		return $visible_substep_ids;
+	}
+
 
 
 	/**
@@ -2744,6 +2778,11 @@ class FluidCheckout_Steps extends FluidCheckout {
 			// Output the step start tag
 			$this->output_step_start_tag( $step_args, $step_index, $context );
 
+			// Get first and last visible substep ids for this step
+			$visible_substep_ids        = $this->get_visible_substep_ids_for_output( $step_id, $context );
+			$first_visible_substep_id   = count( $visible_substep_ids ) > 0 ? $visible_substep_ids[ 0 ] : null;
+			$last_visible_substep_id    = count( $visible_substep_ids ) > 0 ? $visible_substep_ids[ count( $visible_substep_ids ) - 1 ] : null;
+
 			// Iterate substeps
 			foreach ( $substeps as $substep_index => $substep_args ) {
 				// Maybe skip if render fields callback is not callable
@@ -2756,6 +2795,16 @@ class FluidCheckout_Steps extends FluidCheckout {
 				// Get substep variables
 				$substep_id = $substep_args[ 'substep_id' ];
 				$additional_attributes = array_key_exists( 'additional_attributes', $substep_args ) ? $substep_args[ 'additional_attributes' ] : array();
+
+				// Maybe add attribute for first visible substep
+				if ( $substep_id === $first_visible_substep_id ) {
+					$additional_attributes[ 'data-substep-first' ] = true;
+				}
+
+				// Maybe add attribute for last visible substep
+				if ( $substep_id === $last_visible_substep_id ) {
+					$additional_attributes[ 'data-substep-last' ] = true;
+				}
 
 				// Output the substep start tag
 				$this->output_substep_start_tag( $step_id, $substep_id, $additional_attributes, $context );

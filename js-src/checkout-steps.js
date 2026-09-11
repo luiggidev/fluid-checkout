@@ -80,6 +80,8 @@
 		substepEditableStateAttribute: 'data-substep-editable',
 		substepVisibleStateFieldSelector: '.fc-substep-visible-state[type="hidden"]',
 		substepVisibleStateAttribute: 'data-substep-visible',
+		substepFirstAttribute: 'data-substep-first',
+		substepLastAttribute: 'data-substep-last',
 		substepExpandedStateFieldSelector: '.fc-substep-expanded-state[type="hidden"]',
 
 		invalidFieldRowSelector: '.woocommerce-invalid .input-text, .woocommerce-invalid select, .woocommerce-invalid input[type="radio"], .woocommerce-invalid input[type="checkbox"]',
@@ -891,6 +893,43 @@
 				for ( var k = 0; k < visibilityHiddenFields.length; k++ ) {
 					visibilityHiddenFields[ k ].parentNode.removeChild( visibilityHiddenFields[ k ] );
 				}
+			}
+		}
+
+		// Update first/last visible substep attributes for each step
+		maybeUpdateSubstepFirstLastAttributes();
+	}
+
+	/**
+	 * Update first/last visible substep attributes within each checkout step.
+	 */
+	var maybeUpdateSubstepFirstLastAttributes = function() {
+		var allSteps = getAllSteps();
+
+		// Iterate through steps
+		for ( var i = 0; i < allSteps.length; i++ ) {
+			var stepElement = allSteps[ i ];
+			var substeps = stepElement.querySelectorAll( _settings.substepSelector );
+			var visibleSubsteps = [];
+
+			// Collect visible substeps
+			for ( var j = 0; j < substeps.length; j++ ) {
+				// Skip if substep is not visible
+				if ( 'no' === substeps[ j ].getAttribute( _settings.substepVisibleStateAttribute ) ) { continue; }
+
+				visibleSubsteps.push( substeps[ j ] );
+			}
+
+			// Reset first/last attributes on all substeps
+			for ( var k = 0; k < substeps.length; k++ ) {
+				substeps[ k ].removeAttribute( _settings.substepFirstAttribute );
+				substeps[ k ].removeAttribute( _settings.substepLastAttribute );
+			}
+
+			// Set first/last attributes on visible substeps only
+			if ( visibleSubsteps.length > 0 ) {
+				visibleSubsteps[ 0 ].setAttribute( _settings.substepFirstAttribute, '' );
+				visibleSubsteps[ visibleSubsteps.length - 1 ].setAttribute( _settings.substepLastAttribute, '' );
 			}
 		}
 	}
