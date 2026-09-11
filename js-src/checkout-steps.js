@@ -874,7 +874,10 @@
 			if ( visibilityHiddenFields.length > 0 ) {
 				// When multiple compat plugins output visibility fields, hide the substep if any of them require it
 				var visibilityValue = 'yes';
+
+				// Iterate visibility hidden fields
 				for ( var j = 0; j < visibilityHiddenFields.length; j++ ) {
+					// Hide substep if any visibility field requires it
 					if ( 'no' === visibilityHiddenFields[ j ].value ) {
 						visibilityValue = 'no';
 						break;

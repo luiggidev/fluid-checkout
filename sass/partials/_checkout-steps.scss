@@ -42,12 +42,10 @@
 
 	position: relative;
 	padding: $checkout-substep-padding;
-
-	@media (#{$bp-larger-than-tablet}) { padding: $checkout-substep-padding--large-screen; }
-}
-.fc-wrapper .fc-step__substep:not( [data-substep-first] ) {
 	margin: remsize( -.1rem ) 0 0; // Prevent double borders
 	border-top: $checkout-step-border;
+
+	@media (#{$bp-larger-than-tablet}) { padding: $checkout-substep-padding--large-screen; }
 }
 .fc-wrapper .fc-step__substep[data-substep-first] {
 	@media (#{$bp-larger-than-tablet}) {

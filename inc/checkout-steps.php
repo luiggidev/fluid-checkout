@@ -4832,14 +4832,14 @@ class FluidCheckout_Steps extends FluidCheckout {
 		if ( ! WC()->cart || WC()->cart->needs_shipping() ) { return $visibility; }
 
 		// Shipping is not needed: hide the shipping method substep
-		$visibility['shipping_method'] = 'no';
+		$visibility[ 'shipping_method' ] = 'no';
 
 		// Keep the shipping address substep visible only when the billing address is forced into it,
 		// because billing fields are still rendered there until the checkout page is reloaded.
 		// Do not use `is_billing_forced_same_as_shipping()` here: that getter returns false when
 		// shipping is not needed, which is exactly the AJAX case this map covers.
 		$is_billing_forced_into_shipping_address = 'force_single_address' === FluidCheckout_Settings::instance()->get_option( 'fc_pro_checkout_billing_address_position' );
-		$visibility['shipping_address'] = $is_billing_forced_into_shipping_address ? 'yes' : 'no';
+		$visibility[ 'shipping_address' ] = $is_billing_forced_into_shipping_address ? 'yes' : 'no';
 
 		// Order notes stay on the shipping step during AJAX updates. They are not part of this visibility map.
 
@@ -4855,21 +4855,20 @@ class FluidCheckout_Steps extends FluidCheckout {
 		// Get computed visibility for the shipping address substep
 		$visibility = $this->get_shipping_step_substep_visibility();
 
-		echo '<input class="fc-substep-visible-state" type="hidden" value="' . esc_attr( $visibility['shipping_address'] ) . '" />';
+		echo '<input class="fc-substep-visible-state" type="hidden" value="' . esc_attr( $visibility[ 'shipping_address' ] ) . '" />';
 	}
 
 	/**
 	 * Output substep state hidden fields for shipping methods.
 	 */
 	public function output_substep_state_hidden_fields_shipping_methods() {
-		// Maybe hide shipping method substep based on computed visibility
+		// Get computed visibility for the shipping method substep
 		$visibility = $this->get_shipping_step_substep_visibility();
-		if ( 'no' === $visibility['shipping_method'] ) {
-			echo '<input class="fc-substep-visible-state" type="hidden" value="no" />';
-			return;
-		}
 
-		echo '<input class="fc-substep-visible-state" type="hidden" value="yes" />';
+		echo '<input class="fc-substep-visible-state" type="hidden" value="' . esc_attr( $visibility[ 'shipping_method' ] ) . '" />';
+
+		// Bail if shipping method substep should be hidden
+		if ( 'no' === $visibility[ 'shipping_method' ] ) { return; }
 
 		// Get shipping packages
 		$packages = WC()->shipping()->get_packages();
