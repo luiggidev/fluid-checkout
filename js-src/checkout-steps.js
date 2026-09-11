@@ -840,6 +840,7 @@
 		var substepElements = document.querySelectorAll( _settings.substepSelector );
 		for ( var i = 0; i < substepElements.length; i++ ) {
 			var substepElement = substepElements[i];
+			var isSetExpanded = false;
 
 			// Handle editable state
 			var editableHiddenField = substepElement.querySelector( _settings.substepEditableStateFieldSelector );
@@ -858,7 +859,7 @@
 			// Handle expanded state
 			var expandedHiddenField = substepElement.querySelector( _settings.substepExpandedStateFieldSelector );
 			if ( expandedHiddenField ) {
-				var isSetExpanded = expandedHiddenField && 'yes' === expandedHiddenField.value;
+				isSetExpanded = 'yes' === expandedHiddenField.value;
 				if ( isSetExpanded ) {
 					// Expand section
 					expandSubstepEdit( substepElement, true, false );
