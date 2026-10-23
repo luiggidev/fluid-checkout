@@ -257,7 +257,6 @@ class FluidCheckout_Settings extends FluidCheckout {
 			'fc_pro_side_cart_open_after_add_to_cart'                       => 'yes',
 			'fc_pro_side_cart_floating_button_position'                      => 'none',
 			'fc_pro_side_cart_section_position_coupon_code'                 => 'footer',
-			'fc_pro_side_cart_display_shipping_address'                     => 'yes',
 			'fc_pro_side_cart_display_shipping_methods'                     => 'yes',
 			'fc_pro_side_cart_section_position_cross_sells'                 => 'after_cart_items',
 
