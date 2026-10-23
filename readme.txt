@@ -337,6 +337,7 @@ The plugin provides widget areas in strategic positions on the checkout page for
 
 = Unreleased =
 
+* Added: Side cart settings fields on the Cart settings page (PRO feature).
 * Improved: Upgraded Sass build tooling to the latest version.
 * Added: Shared REST API base for `fluid-checkout/v1` (namespace, route registration, user-scoped permissions) and `fc_api_*` error helpers.
 * Improved: Update the sticky-states library to version 1.0.9.
