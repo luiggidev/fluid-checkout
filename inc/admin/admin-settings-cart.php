@@ -376,22 +376,6 @@ class FluidCheckout_Settings_Cart {
 					),
 
 					array(
-						'title'             => __( 'Shipping notice', 'fluid-checkout' ),
-						'desc'              => __( 'Display a shipping costs notice in the side cart', 'fluid-checkout' ),
-						'desc_tip'          => __( 'Shows that shipping costs are calculated during checkout. The side cart does not show the address or shipping methods.', 'fluid-checkout' ),
-						'id'                => 'fc_pro_side_cart_display_shipping_methods',
-						'default'           => FluidCheckout_Settings::instance()->get_option_default( 'fc_pro_side_cart_display_shipping_methods' ),
-						'type'              => 'checkbox',
-						'custom_attributes' => array(
-							'data-conditional-id'    => 'fc_pro_enable_side_cart',
-							'data-conditional-value' => 'yes',
-						),
-						'autoload'          => false,
-						'disabled'          => true,
-						'requires'          => 'pro',
-					),
-
-					array(
 						'title'             => __( 'Cross-sells', 'fluid-checkout' ),
 						'desc'              => '',
 						'desc_tip'          => __( 'Select position where to display the cross-sells section in the side cart.', 'fluid-checkout' ),
