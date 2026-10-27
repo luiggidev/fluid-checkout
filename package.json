@@ -8,13 +8,16 @@
     "postversion": "git push && git push --tags && gulp copy-plugin-files && gulp pack-plugin-zip",
     "start": "wp-scripts start --webpack-src-dir=blocks",
     "build": "wp-scripts build --webpack-src-dir=blocks",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "sync:shared": "node fluid-checkout-standards/scripts/sync-shared-files.js"
+    "test": "bash -lc 'PLUGIN_DIR=\"$(pwd)\"; source \"$PLUGIN_DIR/env.local.sh\"; cd \"$PLUGIN_DIR\"; COMPOSER=composer.dev.json composer test'",
+    "sync:shared": "node fluid-checkout-standards/scripts/sync-shared-files.js",
+    "install-wp-tests": "bash -lc 'PLUGIN_DIR=\"$(pwd)\"; source \"$PLUGIN_DIR/env.local.sh\"; cd \"$PLUGIN_DIR\"; bash bin/install-wp-tests.sh wp_tests_fluid_checkout root root'",
+    "install-composer-dependencies": "bash -lc 'PLUGIN_DIR=\"$(pwd)\"; source \"$PLUGIN_DIR/env.local.sh\"; cd \"$PLUGIN_DIR\"; bash bin/install-composer-dependencies.sh'",
+    "test:filter": "bash -lc 'PLUGIN_DIR=\"$(pwd)\"; source \"$PLUGIN_DIR/env.local.sh\"; cd \"$PLUGIN_DIR\"; ./vendor-dev/bin/phpunit --configuration ./phpunit.xml.dist --filter \"$1\"' --"
   },
   "repository": {},
   "author": "Fluid Checkout",
   "license": "GPL-3.0",
-  "copyright": "Copyright (c) 2021-2026, Fluid Checkout OÜ",
+  "copyright": "Copyright (c) 2021-2026, Fluid Checkout O\u00dc",
   "homepage": "https://fluidcheckout.com",
   "bugs": {
     "url": "https://fluidcheckout.com/support"
