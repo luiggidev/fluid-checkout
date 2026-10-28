@@ -318,7 +318,8 @@ class FluidCheckout_Settings_Cart {
 
 					array(
 						'title'             => __( 'Add to cart', 'fluid-checkout' ),
-						'desc'              => __( 'Open the side cart after adding a product to the cart', 'fluid-checkout' ),
+						'desc'              => __( 'Open the side cart after adding a product to the cart on desktop devices', 'fluid-checkout' ),
+						'desc_tip'          => __( 'Does not open automatically on mobile devices, where the drawer covers the full screen and would interrupt shopping.', 'fluid-checkout' ),
 						'id'                => 'fc_pro_side_cart_open_after_add_to_cart',
 						'default'           => FluidCheckout_Settings::instance()->get_option_default( 'fc_pro_side_cart_open_after_add_to_cart' ),
 						'type'              => 'checkbox',
